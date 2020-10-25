@@ -10,16 +10,3 @@ db = Gino(
     password=DB_PASSWORD,
     database=DB_DATABASE
 )
-
-
-class UserModel(db.Model):
-    __tablename__ = 'users'
-
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-
-    def jsonify(self):
-        return {
-            'id': self.id,
-            'username': self.username,
-        }
