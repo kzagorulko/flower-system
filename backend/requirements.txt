@@ -17,3 +17,5 @@ typing-extensions==3.7.4.3
 uvicorn==0.12.2
 zipp==3.3.2
 zope.interface==5.1.2
+pytest==6.1.1
+pytest-cov==2.10.1

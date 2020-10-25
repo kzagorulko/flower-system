@@ -50,3 +50,8 @@ make db-upgrade
 # downgrade database at one revision
 make db-downgrade
 ```
+
+## Tests
+```bash
+pytest --cov-report term --cov=flower tests/ 
+```
