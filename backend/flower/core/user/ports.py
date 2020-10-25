@@ -5,6 +5,7 @@
 import zope.interface
 from .entities import UserEntity
 
+
 class UserRepositoryPort(zope.interface.Interface):
     async def get_by_id(self, id: int) -> UserEntity:
         """Get UserEntity By Id"""

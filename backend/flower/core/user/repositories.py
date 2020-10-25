@@ -10,6 +10,7 @@ from .entities import UserEntity
 from .ports import UserRepositoryPort
 from .exceptions import UserNotFoundException, UserAlreadyExistException
 
+
 @implementer(UserRepositoryPort)
 class UserRepository:
     def __init__(self):
@@ -35,7 +36,7 @@ class UserRepository:
 
         if not self.is_username_unique(data['username']):
             raise UserAlreadyExistException(f'User with username {data["username"]} is '
-                f'already exist', 400)
+                                            f'already exist', 400)
 
         # update username for example TODO: username should not be updated
         await user.update(username=data['username']).apply()
@@ -52,7 +53,7 @@ class UserRepository:
 
     async def get_users(self, filter: list) -> list:
         users_query = UserModel.query
-        #total_query = db.select([db.func.count(UserModel.id)])
+        # total_query = db.select([db.func.count(UserModel.id)])
 
         # TODO: add filters
 
@@ -61,8 +62,7 @@ class UserRepository:
             page_size = int(filter['pageSize'])
             users_query = users_query.limit(page_size).offset(page - 1)
 
-        #total = await total_query.gino.scalar()
+        # total = await total_query.gino.scalar()
         users = await users_query.gino.all()
 
         return [UserMapper.map_user_entity_from_user_model(user) for user in users]
-

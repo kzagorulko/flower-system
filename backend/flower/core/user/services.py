@@ -1,8 +1,8 @@
 from zope.interface import implementer
 from .ports import UserServicePort, UserRepositoryPort
-from .repositories import UserRepository
 from .exceptions import UserAlreadyExistException
 from .entities import UserEntity
+
 
 @implementer(UserServicePort)
 class UserService:
@@ -23,4 +23,3 @@ class UserService:
 
     async def update_user(self, user_id, data) -> UserEntity:
         return await self.user_repository.update_user(user_id, data)
-
