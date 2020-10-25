@@ -1,25 +1,26 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import './App.less';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const App = () => (
+  <div>
+    <Router>
+      <Switch>
+        <Route path="/flower">
+          <h1>Flower</h1>
+        </Route>
+        <Route path="/system">
+          <h1>System</h1>
+        </Route>
+        <Route exact path="/">
+          <h1>Flower System</h1>
+        </Route>
+        <Route path="*">
+          <h1> No such page </h1>
+        </Route>
+      </Switch>
+    </Router>
+  </div>
+);
 
 export default App;
