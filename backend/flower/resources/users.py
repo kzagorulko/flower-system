@@ -58,9 +58,8 @@ class User(HTTPEndpoint):
             'description': f'User with id {user_id} not found'
         }, status_code=404)
 
-    @staticmethod
     @with_transaction
-    async def patch(request):
+    async def patch(self, request):
         data = await request.json()
         user_id = request.path_params['user_id']
         user = await UserModel.get(user_id)
