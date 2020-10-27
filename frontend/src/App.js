@@ -1,28 +1,15 @@
 import React from 'react';
-import { BrowserRouter as Router, Switch } from 'react-router-dom';
-import Route from './components/Route';
-import HomePage from './routes/HomePage';
+import { Admin, Resource } from 'react-admin';
+import dataProvider from './api/dataProvider';
+import { UserList, UserCreate, UserEdit } from './components/UserList';
+import UserShow from './components/UserShow';
+
 import './App.less';
 
-const Hello = () => (
-  <h1> Hello </h1>
-);
-
-const NoPage = () => (
-  <h1> No such page </h1>
-);
-
 const App = () => (
-  <div>
-    <Router>
-      <Switch>
-        <Route path="/flower" component={Hello} />
-        <Route path="/system" component={Hello} />
-        <Route exact path="/" component={HomePage} />
-        <Route path="*" component={NoPage} />
-      </Switch>
-    </Router>
-  </div>
+  <Admin title="Example" dataProvider={dataProvider('http://127.0.0.1:8000')}>
+    <Resource name="users" list={UserList} show={UserShow} create={UserCreate} edit={UserEdit} />
+  </Admin>
 );
 
 export default App;
