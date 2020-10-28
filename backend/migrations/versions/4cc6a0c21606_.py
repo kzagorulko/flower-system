@@ -1,4 +1,4 @@
-"""empty message
+"""init migration
 
 Revision ID: 4cc6a0c21606
 Revises: 

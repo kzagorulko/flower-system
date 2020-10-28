@@ -50,3 +50,9 @@ make db-upgrade
 # downgrade database at one revision
 make db-downgrade
 ```
+
+## Lint
+
+```bash
+flake8
+```
