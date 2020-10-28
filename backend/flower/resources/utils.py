@@ -62,16 +62,12 @@ def _encode_jwt(identity, token_type):
         'token_type': token_type,
     }
 
-    if (
-        token_type == 'refresh'
-        and isinstance(config.REFRESH_TOKEN_EXPIRES, datetime.timedelta)
-    ):
-        payload['exp'] = time_now + config.REFRESH_TOKEN_EXPIRES
-    elif (
-        token_type == 'access'
-        and isinstance(config.ACCESS_TOKEN_EXPIRES, datetime.timedelta)
-    ):
-        payload['exp'] = time_now + config.ACCESS_TOKEN_EXPIRES
+    if token_type == 'refresh':
+        if isinstance(config.REFRESH_TOKEN_EXPIRES, datetime.timedelta):
+            payload['exp'] = time_now + config.REFRESH_TOKEN_EXPIRES
+    elif token_type == 'access':
+        if isinstance(config.ACCESS_TOKEN_EXPIRES, datetime.timedelta):
+            payload['exp'] = time_now + config.ACCESS_TOKEN_EXPIRES
     else:
         print(token_type)
         raise TokenTypeError
