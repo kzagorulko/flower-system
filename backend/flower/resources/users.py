@@ -105,14 +105,14 @@ async def get_refresh_token(request):
         'id': user.id,
         # 'email': user.email,
         'username': user.username,
-        'refresh_token': create_refresh_token(user.identity),
+        'refresh_token': create_refresh_token(user.id),
     })
 
 
 @jwt_refresh_token_required
 async def get_access_token(request, user):
     return JSONResponse({
-        'access_token': create_access_token(user.identity)
+        'access_token': create_access_token(user.id)
     })
 
 

@@ -51,14 +51,14 @@ class TokenTypeError(TypeError):
     pass
 
 
-def _encode_jwt(identity, token_type):
+def _encode_jwt(user_id, token_type):
     algorithm = config.JWT_ALGORITHM
     time_now = datetime.datetime.utcnow()
 
     header = {'class': token_type}
     payload = {
         'iat': time_now,
-        'identity': identity,
+        'id': user_id,
         'token_type': token_type,
     }
 
@@ -98,15 +98,13 @@ def _jwt_verify(func, token_type='access'):
             return make_error('Signature has expired', status_code=401)
 
         if (
-                'iat' not in payload or 'identity' not in payload
+                'iat' not in payload or 'id' not in payload
                 or 'token_type' not in payload
                 or payload['token_type'] != token_type
         ):
             return make_error('Invalid auth token', status_code=400)
 
-        user = await UserModel.query.where(
-            UserModel.identity == payload['identity']
-        ).gino.first()
+        user = await UserModel.get(payload['id'])
 
         if not user:
             make_error('User not found', status_code=404)
@@ -124,12 +122,12 @@ def jwt_required(func):
     return _jwt_verify(func)
 
 
-def create_access_token(identity):
-    return _encode_jwt(identity, 'access')
+def create_access_token(user_id):
+    return _encode_jwt(user_id, 'access')
 
 
-def create_refresh_token(identity):
-    return _encode_jwt(identity, 'refresh')
+def create_refresh_token(user_id):
+    return _encode_jwt(user_id, 'refresh')
 
 
 def make_error(description, status_code=400):
