@@ -1,9 +1,13 @@
 from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
 from starlette.responses import JSONResponse, Response
+from passlib.hash import pbkdf2_sha256 as sha256
 
-from .utils import with_transaction
 from ..models import UserModel, db
+from .utils import (
+    with_transaction, create_refresh_token, create_access_token,
+    jwt_refresh_token_required, jwt_required
+)
 
 
 async def is_username_unique(username):
@@ -17,7 +21,8 @@ async def is_username_unique(username):
 
 class Users(HTTPEndpoint):
     @staticmethod
-    async def get(request):
+    @jwt_required
+    async def get(request, user):
         users_query = UserModel.query
         total_query = db.select([db.func.count(UserModel.id)])
 
@@ -43,7 +48,11 @@ class Users(HTTPEndpoint):
                 'description': f'User with username {data["username"]} is '
                 f'already exist'
             }, status_code=400)
-        new_user = await UserModel.create(username=data['username'])
+        new_user = await UserModel.create(
+            username=data['username'],
+            identity=data['identity'],
+            password=sha256.hash(data['password'])
+        )
         return JSONResponse({'id': new_user.id})
 
 
@@ -78,7 +87,38 @@ class User(HTTPEndpoint):
         return Response('', status_code=204)
 
 
+async def get_refresh_token(request):
+    data = await request.json()
+    user = await UserModel.get_by_identifier(data['identifier'])
+
+    if not user:
+        return JSONResponse({
+            'description': f'User not found'
+        }, status_code=404)
+
+    if not sha256.verify(data['password'], user.password):
+        return JSONResponse({
+            'description': f'Wrong credentials'
+        }, status_code=401)
+
+    return JSONResponse({
+        'id': user.id,
+        # 'email': user.email,
+        'username': user.username,
+        'refresh_token': create_refresh_token(user.identity),
+    })
+
+
+@jwt_refresh_token_required
+async def get_access_token(request, user):
+    return JSONResponse({
+        'access_token': create_access_token(user.identity)
+    })
+
+
 routes = [
     Route('/', Users),
     Route('/{user_id:int}', User),
+    Route('/refresh-tokens', get_refresh_token, methods=['GET']),
+    Route('/access-tokens', get_access_token, methods=['GET']),
 ]

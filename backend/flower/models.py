@@ -17,9 +17,18 @@ class UserModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
+    identity = db.Column(db.String(36), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
 
     def jsonify(self):
         return {
             'id': self.id,
             'username': self.username,
         }
+
+    @classmethod
+    async def get_by_identifier(cls, identifier):
+        return await cls.query.where(
+            # (cls.email == identifier) | (cls.username == identifier)
+            cls.username == identifier
+        ).gino.first()

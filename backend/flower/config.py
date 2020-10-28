@@ -1,3 +1,5 @@
+import datetime
+
 from starlette.config import Config
 from sqlalchemy.engine.url import URL
 
@@ -18,3 +20,14 @@ DB_URL = URL(
     password=DB_PASSWORD,
     database=DB_DATABASE
 )
+
+REFRESH_TOKEN_EXPIRES = datetime.timedelta(
+    days=int(config('REFRESH_TOKEN_EXPIRES'))
+) if int(config('REFRESH_TOKEN_EXPIRES')) else False
+
+ACCESS_TOKEN_EXPIRES = datetime.timedelta(
+    minutes=int(config('ACCESS_TOKEN_EXPIRES'))
+) if int(config('ACCESS_TOKEN_EXPIRES')) else False
+
+SECRET_KEY = config('SECRET_KEY')
+JWT_ALGORITHM = config('JWT_ALGORITHM')
