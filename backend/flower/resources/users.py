@@ -93,12 +93,12 @@ async def get_refresh_token(request):
 
     if not user:
         return JSONResponse({
-            'description': f'User not found'
+            'description': 'User not found'
         }, status_code=404)
 
     if not sha256.verify(data['password'], user.password):
         return JSONResponse({
-            'description': f'Wrong credentials'
+            'description': 'Wrong credentials'
         }, status_code=401)
 
     return JSONResponse({
@@ -119,6 +119,6 @@ async def get_access_token(request, user):
 routes = [
     Route('/', Users),
     Route('/{user_id:int}', User),
-    Route('/refresh-tokens', get_refresh_token, methods=['GET']),
     Route('/access-tokens', get_access_token, methods=['GET']),
+    Route('/refresh-tokens', get_refresh_token, methods=['GET']),
 ]
