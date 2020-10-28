@@ -73,6 +73,7 @@ def _encode_jwt(identity, token_type):
     ):
         payload['exp'] = time_now + config.ACCESS_TOKEN_EXPIRES
     else:
+        print(token_type)
         raise TokenTypeError
 
     return jwt.encode(

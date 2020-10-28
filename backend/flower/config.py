@@ -21,13 +21,20 @@ DB_URL = URL(
     database=DB_DATABASE
 )
 
-REFRESH_TOKEN_EXPIRES = datetime.timedelta(
-    days=int(config('REFRESH_TOKEN_EXPIRES'))
-) if int(config('REFRESH_TOKEN_EXPIRES')) else False
 
-ACCESS_TOKEN_EXPIRES = datetime.timedelta(
-    minutes=int(config('ACCESS_TOKEN_EXPIRES'))
-) if int(config('ACCESS_TOKEN_EXPIRES')) else False
+def _cast_token_expires(value, unit='days'):
+    try:
+        return datetime.timedelta(**{unit: config(value, cast=int)})
+    except ValueError:
+        pass
+    try:
+        return config(value, cast=bool)
+    except ValueError:
+        raise ValueError(f'{config(value)} is not int or bool value')
+
+
+REFRESH_TOKEN_EXPIRES = _cast_token_expires('REFRESH_TOKEN_EXPIRES', 'days')
+ACCESS_TOKEN_EXPIRES = _cast_token_expires('ACCESS_TOKEN_EXPIRES', 'minutes')
 
 SECRET_KEY = config('SECRET_KEY')
 JWT_ALGORITHM = config('JWT_ALGORITHM')
