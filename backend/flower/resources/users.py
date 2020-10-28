@@ -106,6 +106,7 @@ async def get_refresh_token(request):
         # 'email': user.email,
         'username': user.username,
         'refresh_token': create_refresh_token(user.id),
+        'access_token': create_access_token(user.id),
     })
 
 
@@ -119,6 +120,6 @@ async def get_access_token(request, user):
 routes = [
     Route('/', Users),
     Route('/{user_id:int}', User),
-    Route('/access-tokens', get_access_token, methods=['GET']),
-    Route('/refresh-tokens', get_refresh_token, methods=['GET']),
+    Route('/access-tokens', get_access_token, methods=['POST']),
+    Route('/refresh-tokens', get_refresh_token, methods=['POST']),
 ]
