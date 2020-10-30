@@ -34,9 +34,9 @@ export default {
   checkError: (params) => {
     const { status } = params;
     if (status === 401 || status === 403) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
-      return Promise.reject();
+      destroyCookie('access_token');
+      destroyCookie('refresh_token');
+      return Promise.reject(new HttpError('Ошибка авторизации'));
     }
     return Promise.resolve();
   },
