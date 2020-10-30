@@ -50,7 +50,6 @@ class Users(HTTPEndpoint):
             }, status_code=400)
         new_user = await UserModel.create(
             username=data['username'],
-            identity=data['identity'],
             password=sha256.hash(data['password'])
         )
         return JSONResponse({'id': new_user.id})

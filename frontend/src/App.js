@@ -7,10 +7,8 @@ import UserShow from './components/UserShow';
 
 import './App.less';
 
-const apiUrl = 'http://127.0.0.1:8000';
-
 const App = () => (
-  <Admin title="Example" dataProvider={dataProvider(apiUrl)} authProvider={authProvider(apiUrl)}>
+  <Admin title="Example" dataProvider={dataProvider} authProvider={authProvider}>
     <Resource name="users" list={UserList} show={UserShow} create={UserCreate} edit={UserEdit} />
   </Admin>
 );

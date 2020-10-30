@@ -8,8 +8,8 @@ middleware = [
     Middleware(
         CORSMiddleware,
         allow_origins=['*'],
-        allow_methods=['POST', 'GET', 'PATCH', 'DELETE'],
-        allow_headers=['content-type'])
+        allow_methods=['POST', 'GET', 'PATCH', 'DELETE', 'OPTIONS'],
+        allow_headers=['*'])
 ]
 
 
