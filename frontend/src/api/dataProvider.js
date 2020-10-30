@@ -14,9 +14,14 @@ export default (
 
   // not implemented yet: pagination, filter
   console.log(params);
-
+  const accessToken = localStorage.getItem('access_token');
   // axios options for headers etc
-  const options = {};
+  const options = {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  };
 
   switch (type) {
   case GET_LIST: {

@@ -29,6 +29,7 @@ export const UserCreate = (props) => (
   <Create {...props}>
     <SimpleForm>
       <TextInput source="username" />
+      <TextInput source="password" />
     </SimpleForm>
   </Create>
 );
