@@ -25,18 +25,20 @@ export default {
   logout: () => {
     destroyCookie('refresh_token');
     destroyCookie('access_token');
+    destroyCookie('username');
     return Promise.resolve();
   },
   checkAuth: () => {
     const token = getCookie('access_token');
     return token ? Promise.resolve() : Promise.reject(new HttpError('Вы неавторизованы'));
   },
-  checkError: (params) => {
-    const { status } = params;
-    if (status === 401 || status === 403) {
-      destroyCookie('access_token');
+  checkError: (error) => {
+    const { message } = error;
+    if (message === 'Session expired') {
       destroyCookie('refresh_token');
-      return Promise.reject(new HttpError('Ошибка авторизации'));
+      destroyCookie('access_token');
+      destroyCookie('username');
+      return Promise.reject(new HttpError('Время сессии истекло'));
     }
     return Promise.resolve();
   },

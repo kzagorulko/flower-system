@@ -31,7 +31,7 @@ export function destroyCookie(name) {
   document.cookie = `${name}=; Max-Age=-1`;
 }
 
-function updateAccessToken() {
+export function updateAccessToken() {
   return API.post(
     `${apiUrl}/users/access-tokens`,
     {},
@@ -41,7 +41,13 @@ function updateAccessToken() {
       },
     },
   )
-    .then((resp) => setCookie('access_token', resp.data.access_token));
+    .then((resp) => setCookie('access_token', resp.data.access_token))
+    .catch((error) => {
+      if (error.response.status === 401) {
+        return Promise.reject(new HttpError('Session expired'));
+      }
+      return Promise.reject(new HttpError('Неизвестная ошибка авторизации'));
+    });
 }
 
 export function request(method, url, data = {}) {
@@ -63,12 +69,8 @@ export function request(method, url, data = {}) {
         && (error.response.status === 422 || error.response.status === 401)) {
         return updateAccessToken().then(() => request(method, url, data));
       }
-      if (error.response) {
-        return Promise.reject(new HttpError(error.response.data.description));
-      }
-      if (error.request) {
-        return Promise.reject(new HttpError(error.request.statusText));
-      }
-      return Promise.reject(new HttpError('Ошибка запроса на стороне клиента'));
+      return Promise.reject(
+        new HttpError(error.response.data.description, error.response.status, error.response.data),
+      );
     });
 }
