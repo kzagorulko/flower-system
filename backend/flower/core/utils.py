@@ -5,7 +5,7 @@ from functools import wraps
 from starlette.responses import Response, JSONResponse
 
 from .. import config
-from ..models import UserModel
+from .users import UserModel
 
 
 def with_transaction(func):

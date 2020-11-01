@@ -3,11 +3,13 @@ from starlette.endpoints import HTTPEndpoint
 from starlette.responses import JSONResponse, Response
 from passlib.hash import pbkdf2_sha256 as sha256
 
-from ..models import UserModel, db
-from .utils import (
+from .. import db
+from ..utils import (
     with_transaction, create_refresh_token, create_access_token,
     jwt_refresh_token_required, jwt_required
 )
+
+from .models import UserModel
 
 
 async def is_username_unique(username):
@@ -28,10 +30,20 @@ class Users(HTTPEndpoint):
 
         # TODO: add filters
 
-        if 'pageSize' in request.query_params:
-            page = int(request.query_params['page']) or 1
-            page_size = int(request.query_params['pageSize'])
-            users_query = users_query.limit(page_size).offset(page - 1)
+        query_params = request.query_params
+
+        if '_start' in query_params and '_end' in query_params:
+            limit = int(query_params['_end']) - int(query_params['_start'])
+            offset = int(query_params['_start'] / limit)
+            users_query = users_query.limit(limit).offset(offset)
+
+        if '_order' in query_params and '_sort' in query_params:
+            users_query = users_query.order_by(
+                UserModel.get_column_for_order(
+                    query_params['_sort'],
+                    query_params['_order'] == 'ASC'
+                )
+            )
 
         total = await total_query.gino.scalar()
         users = await users_query.gino.all()
