@@ -29,14 +29,15 @@ export const UserCreate = (props) => (
   <Create {...props}>
     <SimpleForm>
       <TextInput source="username" />
+      <TextInput source="password" />
     </SimpleForm>
   </Create>
 );
 
 export const UserEdit = (props) => (
-  <Edit {...props}>
+  <Edit undoable={false} {...props}>
     <SimpleForm>
-      <TextInput disabled label="Id" source="id" />
+      <TextInput disabled source="id" />
       <TextInput source="username" />
     </SimpleForm>
   </Edit>
