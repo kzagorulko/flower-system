@@ -109,7 +109,7 @@ __all__ = ['routes', 'UserModel']
 8. Добавляем роуты юзера к общим роутам:
 
 ```python
-from starlette.routing import Route, Mount
+from starlette.routing import Mount
 
 from . import users
 
@@ -141,7 +141,7 @@ async def get_blank_response(request):
 или
 
 ```python
-@jwt_required(reutrn_user=True)
+@jwt_required(return_user=True)
 async def get_user_username(request, user):
     return Response(user.username)
 ```
@@ -172,7 +172,7 @@ role = request.query_params['role']
 
 - При создании вернуть `id` новой сущности (`JSONResponse`)
 - При обновлении данных, вернуть '', 204 NoContent (`Response`)
-- При ошибке вызвать функцию `utils/make_error`, передать <Описание ошибки>
+- При ошибке вызвать функцию `utils/make_error`, передать описание ошибки
 и указать `status_code` (`JSONResponse`)
 
 ### <a name="Naming"></a> Именование
