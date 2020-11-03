@@ -5,6 +5,7 @@ import {
   SimpleShowLayout,
   TextField,
   useNotify,
+  BooleanField,
 } from 'react-admin';
 
 const UserShow = (props) => {
@@ -15,6 +16,9 @@ const UserShow = (props) => {
       <SimpleShowLayout>
         <TextField source="id" onClick={clickie} />
         <TextField source="username" />
+        <TextField source="displayName" />
+        <BooleanField source="deactivated" />
+        <TextField source="email" />
       </SimpleShowLayout>
     </Show>
   );

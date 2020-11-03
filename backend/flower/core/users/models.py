@@ -8,11 +8,23 @@ class UserModel(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)
-    # TODO change default to False
-    activated = db.Column(db.Boolean, nullable=False, default=True)
+    deactivated = db.Column(db.Boolean, nullable=False, default=False)
     display_name = db.Column(db.String(50), nullable=False)
     path_to_image = db.Column(db.String(120))
+    session = db.Column(db.String(36), nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=True)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._role = None
+
+    @property
+    def role(self):
+        return self._role
+
+    @role.setter
+    def role(self, value):
+        self._role = value
 
     def jsonify(self, for_card=False):
         result = {
@@ -24,9 +36,9 @@ class UserModel(db.Model):
         if for_card:
             result['username'] = self.username
             result['email'] = self.email
-            result['activated'] = self.activated
+            result['deactivated'] = self.deactivated
 
-        result['role'] = ''
+        result['role'] = self.role.display_name if self.role else ''
 
         return result
 
@@ -35,15 +47,4 @@ class UserModel(db.Model):
         return await cls.query.where(
             (cls.email == identifier) | (cls.username == identifier)
         ).gino.first()
-
-    @classmethod
-    def get_column_for_order(cls, column_name, asc=True):
-        names_x_columns = {
-            'id': cls.id,
-            'displayName': cls.display_name,
-        }
-
-        if asc:
-            return names_x_columns[column_name]
-        return names_x_columns[column_name].desc()
 

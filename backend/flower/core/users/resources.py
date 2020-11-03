@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
 from starlette.responses import JSONResponse, Response
@@ -5,53 +7,53 @@ from passlib.hash import pbkdf2_sha256 as sha256
 
 from .. import db
 from ..utils import (
-    with_transaction, create_refresh_token, create_access_token,
-    jwt_refresh_token_required, jwt_required
+    with_transaction, create_refresh_token, create_access_token, jwt_required,
+    make_error,
 )
-
-from .models import UserModel
-
-
-async def is_username_unique(username):
-    user = await UserModel.query.where(
-        UserModel.username == username
-    ).gino.first()
-    if user:
-        return False
-    return True
+from ..models import UserModel, RoleModel
+from .utils import (
+    is_username_unique, get_role_id, RoleNotExist, get_column_for_order,
+)
 
 
 class Users(HTTPEndpoint):
     @staticmethod
     @jwt_required
-    async def get(request, user):
-        users_query = UserModel.query
+    async def get(request):
+        users_query = UserModel.outerjoin(RoleModel).select()
         total_query = db.select([db.func.count(UserModel.id)])
-
-        # TODO: add filters
 
         query_params = request.query_params
 
-        if '_start' in query_params and '_end' in query_params:
-            limit = int(query_params['_end']) - int(query_params['_start'])
-            offset = int(query_params['_start'] / limit)
-            users_query = users_query.limit(limit).offset(offset)
+        if 'search' in query_params:
+            users_query.where(
+                UserModel.display_name.ilkie(f'%{query_params["search"]}%')
+            )
 
-        if '_order' in query_params and '_sort' in query_params:
+        if 'page' in query_params and 'perPage' in query_params:
+            page = int(query_params['page']) - 1
+            per_page = int(query_params['perPage'])
+            users_query = users_query.limit(per_page).offset(page * per_page)
+
+        if 'order' in query_params and 'field' in query_params:
             users_query = users_query.order_by(
-                UserModel.get_column_for_order(
-                    query_params['_sort'],
-                    query_params['_order'] == 'ASC'
+                get_column_for_order(
+                    query_params['field'],
+                    query_params['order'] == 'ASC'
                 )
             )
 
         total = await total_query.gino.scalar()
-        users = await users_query.gino.all()
+        users = await users_query.gino.load(
+            UserModel.distinct(UserModel.id).load(role=RoleModel)
+        ).all()
+
         return JSONResponse({
             'items': [user.jsonify() for user in users],
             'total': total,
         })
 
+    # TODO make this for admin only
     @with_transaction
     async def post(self, request):
         data = await request.json()
@@ -60,25 +62,43 @@ class Users(HTTPEndpoint):
                 'description': f'User with username {data["username"]} is '
                 f'already exist'
             }, status_code=400)
+
+        try:
+            role_id = await get_role_id(data)
+        except RoleNotExist:
+            return make_error("Role does't exist", status_code=404)
+
         new_user = await UserModel.create(
             username=data['username'],
-            password=sha256.hash(data['password'])
+            password=sha256.hash(data['password']),
+            session=str(uuid4()),
+            display_name=data['displayName'],
+            email=data['email'],
+            role_id=role_id
         )
         return JSONResponse({'id': new_user.id})
 
 
 class User(HTTPEndpoint):
     @staticmethod
+    @jwt_required
     async def get(request):
         user_id = request.path_params['user_id']
-        user = await UserModel.get(user_id)
-        if user:
-            return JSONResponse(user.jsonify())
+        users = await UserModel.outerjoin(RoleModel).select().where(
+            UserModel.id == user_id
+        ).gino.load(
+            UserModel.distinct(UserModel.id).load(role=RoleModel)
+        ).all()
+        if users:
+            return JSONResponse(users[0].jsonify(for_card=True))
         return JSONResponse({
             'description': f'User with id {user_id} not found'
         }, status_code=404)
 
+    # TODO: make this method for admin only
+
     @with_transaction
+    @jwt_required
     async def patch(self, request):
         data = await request.json()
         user_id = request.path_params['user_id']
@@ -87,13 +107,26 @@ class User(HTTPEndpoint):
             return JSONResponse({
                 'description': f'User with id {user_id} not found'
             }, status_code=404)
-        if not await is_username_unique(data['username']):
-            return JSONResponse({
-                'description': f'User with username {data["username"]} is '
-                f'already exist'
-            }, status_code=400)
-        # update username for example TODO: username should not be updated
-        await user.update(username=data['username']).apply()
+
+        try:
+            role_id = await get_role_id(data)
+        except RoleNotExist:
+            return make_error("Role does't exist", status_code=404)
+
+        values = {
+            'display_name': data['displayName']
+            if 'displayName' in data else None,
+            'password': sha256.hash(data['password'])
+            if 'password' in data else None,
+            'deactivated': data['deactivated']
+            if 'deactivated' in data else None,
+            'email': data['email'] if 'email' in data else None,
+            'role_id': role_id
+        }
+
+        values = dict(filter(lambda item: item[1] is not None, values.items()))
+
+        await user.update(**values).apply()
 
         return Response('', status_code=204)
 
@@ -114,23 +147,40 @@ async def get_refresh_token(request):
 
     return JSONResponse({
         'id': user.id,
-        # 'email': user.email,
+        'email': user.email,
         'username': user.username,
-        'refresh_token': create_refresh_token(user.id),
-        'access_token': create_access_token(user.id),
+        'refresh_token': create_refresh_token(user.session),
+        'access_token': create_access_token(user.session),
     })
 
 
-@jwt_refresh_token_required
+@jwt_required(return_user=True, token_type='refresh')
 async def get_access_token(request, user):
     return JSONResponse({
-        'access_token': create_access_token(user.id)
+        'access_token': create_access_token(user.session)
     })
+
+
+@jwt_required(return_user=True)
+async def reset_session(request, user):
+    data = await request.json()
+
+    if not sha256.verify(data['password'], user.password):
+        return JSONResponse({
+            'description': 'Wrong credentials'
+        }, status_code=401)
+
+    await user.update(
+        session=str(uuid4())
+    ).apply()
+
+    return Response('', status_code=204)
 
 
 routes = [
     Route('/', Users),
     Route('/{user_id:int}', User),
+    Route('/reset-session', reset_session, methods=['POST']),
     Route('/access-tokens', get_access_token, methods=['POST']),
     Route('/refresh-tokens', get_refresh_token, methods=['POST']),
 ]

@@ -7,6 +7,7 @@ Create Date: 2020-11-01 15:01:10.385506
 """
 from alembic import op
 import sqlalchemy as sa
+from uuid import uuid4
 
 
 # revision identifiers, used by Alembic.
@@ -28,29 +29,33 @@ def upgrade():
         sa.UniqueConstraint('name')
     )
     op.add_column(
-        'users', sa.Column('activated', sa.Boolean(), nullable=True)
+        'users', sa.Column('deactivated', sa.Boolean(), nullable=True)
     )
     op.add_column(
         'users',
         sa.Column('display_name', sa.String(length=50), nullable=True)
     )
     op.add_column(
-        'users', sa.Column('email', sa.String(length=50), nullable=True))
+        'users', sa.Column('email', sa.String(length=50), nullable=True)
+    )
     op.add_column(
         'users',
         sa.Column('path_to_image', sa.String(length=120), nullable=True)
     )
     op.add_column(
-        'users', sa.Column('role_id', sa.Integer(), nullable=True))
+        'users', sa.Column('role_id', sa.Integer(), nullable=True)
+    )
+    op.add_column('users', sa.Column('session', sa.String(length=36)))
 
     t_users = sa.Table(
         'users',
         sa.MetaData(),
         sa.Column('id', sa.Integer),
         sa.Column('username', sa.String),
-        sa.Column('activated', sa.Boolean),
+        sa.Column('deactivated', sa.Boolean),
         sa.Column('display_name', sa.String),
         sa.Column('email', sa.String),
+        sa.Column('session', sa.String),
         sa.Column('role_id', sa.Integer)
     )
 
@@ -72,13 +77,14 @@ def upgrade():
                 t_users.c.id == user[0]
             ).values(
                 email=f'{user[1]}@example.org',
-                activated=True,
+                deactivated=False,
                 display_name='Иван',
+                session=str(uuid4()),
                 role_id=1
             )
         )
 
-    op.alter_column('users', 'activated', nullable=False)
+    op.alter_column('users', 'deactivated', nullable=False)
     op.alter_column('users', 'display_name', nullable=False)
     op.alter_column('users', 'email', nullable=False)
 
@@ -97,6 +103,7 @@ def downgrade():
     op.drop_column('users', 'path_to_image')
     op.drop_column('users', 'email')
     op.drop_column('users', 'display_name')
-    op.drop_column('users', 'activated')
+    op.drop_column('users', 'deactivated')
+    op.drop_column('users', 'session')
     op.drop_table('roles')
     # ### end Alembic commands ###

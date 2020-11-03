@@ -2,6 +2,7 @@ import jwt
 import datetime
 
 from functools import wraps
+from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
 
 from .. import config
@@ -51,14 +52,14 @@ class TokenTypeError(TypeError):
     pass
 
 
-def _encode_jwt(user_id, token_type):
+def _encode_jwt(session, token_type):
     algorithm = config.JWT_ALGORITHM
     time_now = datetime.datetime.utcnow()
 
     header = {'class': token_type}
     payload = {
         'iat': time_now,
-        'id': user_id,
+        'session': session,
         'token_type': token_type,
     }
 
@@ -69,7 +70,6 @@ def _encode_jwt(user_id, token_type):
         if isinstance(config.ACCESS_TOKEN_EXPIRES, datetime.timedelta):
             payload['exp'] = time_now + config.ACCESS_TOKEN_EXPIRES
     else:
-        print(token_type)
         raise TokenTypeError
 
     return jwt.encode(
@@ -77,57 +77,69 @@ def _encode_jwt(user_id, token_type):
     ).decode('utf-8')
 
 
-def _jwt_verify(func, token_type='access'):
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        request = args[0]
-        if not hasattr(request, 'headers'):
-            return make_error('Missing headers', status_code=400)
-        headers = request.headers
+def jwt_required(*arguments, return_user=False, token_type='access'):
+    def wrapper(func):
+        async def wrapper_view(*args, **kwargs):
+            request = list(
+                filter(lambda arg: isinstance(arg, Request), args)
+            )[0]
 
-        if 'authorization' not in headers:
-            return make_error('Missing Authentication Token', status_code=401)
+            if not hasattr(request, 'headers'):
+                return make_error('Missing headers', status_code=400)
+            headers = request.headers
 
-        token = headers['authorization'].split(' ')[1]
+            if 'authorization' not in headers:
+                return make_error(
+                    'Missing Authentication Token', status_code=401
+                )
 
-        try:
-            payload = jwt.decode(
-                token, config.SECRET_KEY, algorithms=[config.JWT_ALGORITHM]
-            )
-        except jwt.exceptions.ExpiredSignatureError:
-            return make_error('Signature has expired', status_code=401)
+            token = headers['authorization'].split(' ')[1]
 
-        if (
-                'iat' not in payload or 'id' not in payload
-                or 'token_type' not in payload
-                or payload['token_type'] != token_type
-        ):
-            return make_error('Invalid auth token', status_code=400)
+            try:
+                payload = jwt.decode(
+                    token, config.SECRET_KEY, algorithms=[config.JWT_ALGORITHM]
+                )
+            except jwt.exceptions.ExpiredSignatureError:
+                return make_error('Signature has expired', status_code=401)
+            except jwt.exceptions.DecodeError:
+                return make_error('Token is corrupted', status_code=400)
 
-        user = await UserModel.get(payload['id'])
+            if (
+                    'iat' not in payload or 'session' not in payload
+                    or 'token_type' not in payload
+                    or payload['token_type'] != token_type
+            ):
+                return make_error(
+                    'Invalid auth token',
+                    status_code=400
+                )
 
-        if not user:
-            make_error('User not found', status_code=404)
+            user = await UserModel.query.where(
+                UserModel.session == payload['session']
+            ).gino.first()
 
-        return await func(*args, user, **kwargs)
+            if not user:
+                return make_error(
+                    'User not found or token was revoked', status_code=404
+                )
 
+            if return_user:
+                return await func(*args, user=user, **kwargs)
+            return await func(*args, **kwargs)
+
+        return wrapper_view
+
+    if len(arguments) > 0:
+        return wrapper(arguments[0])
     return wrapper
 
 
-def jwt_refresh_token_required(func):
-    return _jwt_verify(func, 'refresh')
+def create_access_token(session):
+    return _encode_jwt(session, 'access')
 
 
-def jwt_required(func):
-    return _jwt_verify(func)
-
-
-def create_access_token(user_id):
-    return _encode_jwt(user_id, 'access')
-
-
-def create_refresh_token(user_id):
-    return _encode_jwt(user_id, 'refresh')
+def create_refresh_token(session):
+    return _encode_jwt(session, 'refresh')
 
 
 def make_error(description, status_code=400):
