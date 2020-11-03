@@ -1,8 +1,6 @@
 from starlette.routing import Route, Mount
 from starlette.responses import JSONResponse
 
-from .database import db
-
 from . import users
 
 
@@ -14,7 +12,4 @@ routes = [
     Mount('/users', routes=users.routes),
 ]
 
-__all__ = [
-    'routes',
-    'db',
-]
+__all__ = ['routes']

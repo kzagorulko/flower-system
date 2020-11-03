@@ -5,7 +5,7 @@ from starlette.endpoints import HTTPEndpoint
 from starlette.responses import JSONResponse, Response
 from passlib.hash import pbkdf2_sha256 as sha256
 
-from .. import db
+from ... import db
 from ..utils import (
     with_transaction, create_refresh_token, create_access_token, jwt_required,
     make_error,
@@ -58,10 +58,10 @@ class Users(HTTPEndpoint):
     async def post(self, request):
         data = await request.json()
         if not await is_username_unique(data['username']):
-            return JSONResponse({
-                'description': f'User with username {data["username"]} is '
-                f'already exist'
-            }, status_code=400)
+            return make_error(
+                f'User with username {data["username"]} is already exist',
+                status_code=400
+            )
 
         try:
             role_id = await get_role_id(data)
@@ -91,9 +91,7 @@ class User(HTTPEndpoint):
         ).all()
         if users:
             return JSONResponse(users[0].jsonify(for_card=True))
-        return JSONResponse({
-            'description': f'User with id {user_id} not found'
-        }, status_code=404)
+        return make_error(f'User with id {user_id} not found', status_code=404)
 
     # TODO: make this method for admin only
 
@@ -104,9 +102,9 @@ class User(HTTPEndpoint):
         user_id = request.path_params['user_id']
         user = await UserModel.get(user_id)
         if not user:
-            return JSONResponse({
-                'description': f'User with id {user_id} not found'
-            }, status_code=404)
+            return make_error(
+                f'User with id {user_id} not found', status_code=404
+            )
 
         try:
             role_id = await get_role_id(data)
@@ -136,14 +134,10 @@ async def get_refresh_token(request):
     user = await UserModel.get_by_identifier(data['identifier'])
 
     if not user:
-        return JSONResponse({
-            'description': 'User not found'
-        }, status_code=404)
+        return make_error('User not found', status_code=404)
 
     if not sha256.verify(data['password'], user.password):
-        return JSONResponse({
-            'description': 'Wrong credentials'
-        }, status_code=401)
+        return make_error('Wrong credentials', status_code=401)
 
     return JSONResponse({
         'id': user.id,
@@ -166,9 +160,7 @@ async def reset_session(request, user):
     data = await request.json()
 
     if not sha256.verify(data['password'], user.password):
-        return JSONResponse({
-            'description': 'Wrong credentials'
-        }, status_code=401)
+        return make_error('Wrong credentials', status_code=401)
 
     await user.update(
         session=str(uuid4())

@@ -6,7 +6,7 @@ from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
 
 from .. import config
-from .users import UserModel
+from .models import UserModel
 
 
 def with_transaction(func):
@@ -52,6 +52,13 @@ class TokenTypeError(TypeError):
     pass
 
 
+class UserExtractionError(Exception):
+    def __init__(self, description, status_code, *args):
+        super().__init__(*args)
+        self.description = description
+        self.status_code = status_code
+
+
 def _encode_jwt(session, token_type):
     algorithm = config.JWT_ALGORITHM
     time_now = datetime.datetime.utcnow()
@@ -77,6 +84,42 @@ def _encode_jwt(session, token_type):
     ).decode('utf-8')
 
 
+async def _extract_user(headers, token_type):
+    if 'authorization' not in headers:
+        raise UserExtractionError(
+            description='Missing Authentication Token',
+            status_code=401
+        )
+
+    token = headers['authorization'].split(' ')[1]
+
+    payload = jwt.decode(
+        token, config.SECRET_KEY, algorithms=[config.JWT_ALGORITHM]
+    )
+
+    if (
+            'iat' not in payload or 'session' not in payload
+            or 'token_type' not in payload
+            or payload['token_type'] != token_type
+    ):
+        raise UserExtractionError(
+            description='Invalid auth token',
+            status_code=400
+        )
+
+    user = await UserModel.query.where(
+        UserModel.session == payload['session']
+    ).gino.first()
+
+    if not user:
+        raise UserExtractionError(
+            description='User not found or token was revoked',
+            status_code=404
+        )
+
+    return user
+
+
 def jwt_required(*arguments, return_user=False, token_type='access'):
     def wrapper(func):
         async def wrapper_view(*args, **kwargs):
@@ -88,40 +131,14 @@ def jwt_required(*arguments, return_user=False, token_type='access'):
                 return make_error('Missing headers', status_code=400)
             headers = request.headers
 
-            if 'authorization' not in headers:
-                return make_error(
-                    'Missing Authentication Token', status_code=401
-                )
-
-            token = headers['authorization'].split(' ')[1]
-
             try:
-                payload = jwt.decode(
-                    token, config.SECRET_KEY, algorithms=[config.JWT_ALGORITHM]
-                )
+                user = await _extract_user(headers, token_type)
+            except UserExtractionError as e:
+                return make_error(e.description, status_code=e.status_code)
             except jwt.exceptions.ExpiredSignatureError:
                 return make_error('Signature has expired', status_code=401)
             except jwt.exceptions.DecodeError:
                 return make_error('Token is corrupted', status_code=400)
-
-            if (
-                    'iat' not in payload or 'session' not in payload
-                    or 'token_type' not in payload
-                    or payload['token_type'] != token_type
-            ):
-                return make_error(
-                    'Invalid auth token',
-                    status_code=400
-                )
-
-            user = await UserModel.query.where(
-                UserModel.session == payload['session']
-            ).gino.first()
-
-            if not user:
-                return make_error(
-                    'User not found or token was revoked', status_code=404
-                )
 
             if return_user:
                 return await func(*args, user=user, **kwargs)

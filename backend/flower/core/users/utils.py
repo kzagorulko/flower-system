@@ -18,7 +18,8 @@ async def is_username_unique(username):
 async def get_role_id(data):
     if 'role' in data:
         role = await RoleModel.query.where(
-            RoleModel.name == data['role']
+            (RoleModel.name == data['role'])
+            | (RoleModel.display_name == data['role'])
         ).gino.first()
         if not role:
             raise RoleNotExist
@@ -36,4 +37,3 @@ def get_column_for_order(column_name, asc=True):
     if asc:
         return names_x_columns[column_name]
     return names_x_columns[column_name].desc()
-

@@ -1,4 +1,4 @@
-from .. import db
+from ... import db
 
 
 class UserModel(db.Model):
@@ -47,4 +47,3 @@ class UserModel(db.Model):
         return await cls.query.where(
             (cls.email == identifier) | (cls.username == identifier)
         ).gino.first()
-

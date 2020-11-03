@@ -12,7 +12,7 @@ middleware = [
 
 
 def create_app():
-    from .core import db
+    from . import db
     from .core import routes
     app = Starlette(
         debug=True,
