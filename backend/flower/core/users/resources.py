@@ -27,7 +27,7 @@ class Users(HTTPEndpoint):
 
         if 'search' in query_params:
             users_query.where(
-                UserModel.display_name.ilkie(f'%{query_params["search"]}%')
+                UserModel.display_name.ilike(f'%{query_params["search"]}%')
             )
 
         if 'page' in query_params and 'perPage' in query_params:
@@ -59,14 +59,14 @@ class Users(HTTPEndpoint):
         data = await request.json()
         if not await is_username_unique(data['username']):
             return make_error(
-                f'User with username {data["username"]} is already exist',
+                f'User with username {data["username"]} already exist',
                 status_code=400
             )
 
         try:
             role_id = await get_role_id(data)
         except RoleNotExist:
-            return make_error("Role does't exist", status_code=404)
+            return make_error("Role doesn't exist", status_code=404)
 
         new_user = await UserModel.create(
             username=data['username'],

@@ -13,7 +13,6 @@ const flatParams = (params) => {
 
 export default {
   getList: (resource, params) => {
-    // params not implemented: filters, pagination etc
     console.log(params);
     return request('GET', `/${resource}/`, flatParams(params))
       .then((resp) => {
