@@ -12,19 +12,17 @@ const flatParams = (params) => {
 };
 
 export default {
-  getList: (resource, params) => {
-    return request('GET', `/${resource}/`, flatParams(params))
-      .then((resp) => {
-        const { total } = resp.data;
-        return {
-          data: resp.data.items.map((value) => ({
-            id: value.id,
-            ...value,
-          })),
-          total,
-        };
-      });
-  },
+  getList: (resource, params) => request('GET', `/${resource}/`, flatParams(params))
+    .then((resp) => {
+      const { total } = resp.data;
+      return {
+        data: resp.data.items.map((value) => ({
+          id: value.id,
+          ...value,
+        })),
+        total,
+      };
+    }),
 
   getOne: (resource, params) => {
     console.log(params);
