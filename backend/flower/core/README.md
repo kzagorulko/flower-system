@@ -122,18 +122,25 @@ __all__ = ['routes']
 
 ### <a name="Wrappers"></a> Декораторы
 
-Сейчас мы используем три декоратора: `@with_transaction`, `@staticmethod` 
-`jwt_required`.
+Сейчас мы используем декораторы: `@with_transaction`, `@staticmethod`, 
+`jwt_required`, `permissions.required`.
 
-Первый используется, когда что-то изменяется в базе данных. То есть во всех 
-методах, кроме `get`. Второй используется в гет методах, если вам не нужно 
-обращаться к классу через `self`. IDE обычно подствечивают метод, который можно
-сделать статическим. 
+#### with_transaction
+
+Используется, когда что-то изменяется в базе данных. То есть во всех 
+методах, кроме `get`. 
+
+#### staticmethod
+
+Используется в гет методах, если вам не нужно обращаться к классу через 
+`self`. IDE обычно подствечивают метод, который можно сделать статическим. 
+
+#### jwt_required
 
 `jwt_required` имеет опциональный интрефейс. Можно писать просто 
 
 ```python
-@jwt_required
+@jwt_required(return_user=False)
 async def get_blank_response(request):
     return Response('', status_code=204)
 ```
@@ -141,13 +148,42 @@ async def get_blank_response(request):
 или
 
 ```python
-@jwt_required(return_user=True)
+@jwt_required
 async def get_user_username(request, user):
     return Response(user.username)
 ```
 
-также в этом декораторе имеется опциональный параметр `token_type`, но
-его вряд ли придётся использовать.
+как видно, `return_user` стоит по умолчанию в значении `True`. И если вам
+он не нужен, то можете убрать его, передпав атрибут `return_user` со
+значением `False`. Также в этом декораторе имеется опциональный параметр 
+`token_type`, но его вряд ли придётся использовать.
+
+#### Permissions
+
+В отличие от прошлых декораторов, этот является не функцией, а классом
+поэтому его следует объявлять заранее с указанием имени приложения,
+в котором он будет работать:
+
+```python
+from ..utils import Permissions
+
+permissions = Permissions(app_name='users')
+```
+
+Использовать его следует, когда ваш метод должен быть ограничен полномочиями.
+```python
+@with_transaction
+@jwt_required
+@permissions.required(action='delete')
+async def delete_all_users(request):
+    await Users.delete.gino.status()
+    return Response('', status_code=204)
+
+```
+
+также у него есть аргументы: `return_user` и `return_role`, которые по 
+умолчанию установлены в `False`
+
 
 ### <a name="Requests"></a> Запросы
 
