@@ -4,7 +4,7 @@ run:
 	uvicorn start:app --reload --workers 2
 
 test:
-    pytest --cov=flower
+	pytest --cov=flower
 
 db-migrate:
 	alembic revision --autogenerate

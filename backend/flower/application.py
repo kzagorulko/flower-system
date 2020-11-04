@@ -2,8 +2,6 @@ from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 
-from .resources import routes
-
 middleware = [
     Middleware(
         CORSMiddleware,
@@ -14,7 +12,8 @@ middleware = [
 
 
 def create_app():
-    from .models import db
+    from . import db
+    from .core import routes
     app = Starlette(
         debug=True,
         routes=routes,

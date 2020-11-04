@@ -11,6 +11,7 @@ import {
   Create,
   Edit,
   TextInput,
+  BooleanInput,
 } from 'react-admin';
 
 const UserListActions = () => {
@@ -30,6 +31,9 @@ export const UserCreate = (props) => (
     <SimpleForm>
       <TextInput source="username" />
       <TextInput source="password" />
+      <TextInput source="displayName" />
+      <TextInput source="email" />
+      <TextInput source="role" />
     </SimpleForm>
   </Create>
 );
@@ -38,7 +42,11 @@ export const UserEdit = (props) => (
   <Edit undoable={false} {...props}>
     <SimpleForm>
       <TextInput disabled source="id" />
-      <TextInput source="username" />
+      <TextInput disabled source="username" />
+      <TextInput source="displayName" />
+      <TextInput source="password" />
+      <BooleanInput source="deactivated" />
+      <TextInput source="role" />
     </SimpleForm>
   </Edit>
 );
@@ -47,7 +55,8 @@ export const UserList = (props) => (
   <List {...props} actions={<UserListActions />}>
     <Datagrid rowClick="edit">
       <TextField source="id" />
-      <TextField source="username" />
+      <TextField source="displayName" />
+      <TextField source="role" />
     </Datagrid>
   </List>
 );

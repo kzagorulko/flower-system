@@ -11,3 +11,5 @@ routes = [
     Route('/ping', ping),
     Mount('/users', routes=users.routes),
 ]
+
+__all__ = ['routes']
