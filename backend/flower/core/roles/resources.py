@@ -15,4 +15,3 @@ async def get_roles(request):
 routes = [
     Route('/', get_roles, methods=['GET'])
 ]
-
