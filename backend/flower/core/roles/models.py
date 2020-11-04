@@ -11,5 +11,5 @@ class RoleModel(db.Model):
     def jsonify(self):
         return {
             'name': self.name,
-            'displayName': self.name,
+            'displayName': self.display_name,
         }
