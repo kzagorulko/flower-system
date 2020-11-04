@@ -13,7 +13,6 @@ const flatParams = (params) => {
 
 export default {
   getList: (resource, params) => {
-    console.log(params);
     return request('GET', `/${resource}/`, flatParams(params))
       .then((resp) => {
         const { total } = resp.data;
