@@ -21,7 +21,7 @@
 Импортировать модели также стоит из `core.models.py`. 
 
 - После создания ресурса нужо добавить в конец файла переменную `routes`, 
-заполните её роутами. Затем следует добавить ресурс в `core/resources.py`.
+заполните её роутами. Затем следует добавить ресурс в `core/routes.py`.
 
 Пример:
 
@@ -31,7 +31,7 @@
 2. Создаём модель `UserModel`:
 
 ```python
-from ... import db
+from ..database import db
 
 
 class UserModel(db.Model):
@@ -40,6 +40,12 @@ class UserModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
+    
+    def jsonify(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+        }
 ```
 
 3. Добавляем модель в `core/models.py`:
@@ -58,6 +64,7 @@ from starlette.endpoints import HTTPEndpoint
 from starlette.responses import JSONResponse
 
 from ..models import UserModel
+from ..utils import make_error
 
 
 class User(HTTPEndpoint):
@@ -67,6 +74,7 @@ class User(HTTPEndpoint):
         user = await UserModel.get(user_id)
         if user:
             return JSONResponse(user.jsonify())
+        return make_error(description='User not found', status_code=404)
             
 async def ping(request):
     return JSONResponse({'onPing': 'wePong'})
@@ -77,7 +85,7 @@ async def ping(request):
 
 ```python
 routes = [
-    Route('/', Users),
+    Route('/', User),
     Route('/ping', ping, methods=['GET'])
 ]
 ```

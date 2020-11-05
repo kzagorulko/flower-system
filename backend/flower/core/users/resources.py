@@ -193,9 +193,15 @@ async def reset_session(request, user):
     return Response('', status_code=204)
 
 
+@jwt_required
+async def get_actions(request, user):
+    return JSONResponse(await permissions.get_actions(user.role_id))
+
+
 routes = [
     Route('/', Users),
     Route('/{user_id:int}', User),
+    Route('/actions', get_actions, methods=['GET']),
     Route('/reset-session', reset_session, methods=['POST']),
     Route('/access-tokens', get_access_token, methods=['POST']),
     Route('/refresh-tokens', get_refresh_token, methods=['POST']),

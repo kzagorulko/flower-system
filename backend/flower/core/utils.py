@@ -6,6 +6,7 @@ from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
 
 from .. import config
+from .database import db
 from .models import UserModel, RoleModel, PermissionModel
 
 
@@ -204,3 +205,16 @@ class Permissions:
         if len(arguments) > 0:
             return wrapper(arguments[0])
         return wrapper
+
+    async def get_actions(self, role_id):
+        actions = await db.select([
+            PermissionModel.action
+        ]).select_from(
+            PermissionModel
+        ).where(
+            (PermissionModel.app_name == self.app_name)
+            & (PermissionModel.role_id == role_id)
+        ).gino.all()
+        return {
+            'actions': [action[0] for action in actions]
+        }
