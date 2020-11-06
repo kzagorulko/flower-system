@@ -5,20 +5,23 @@ from starlette.endpoints import HTTPEndpoint
 from starlette.responses import JSONResponse, Response
 from passlib.hash import pbkdf2_sha256 as sha256
 
-from ... import db
+from ..database import db
 from ..utils import (
     with_transaction, create_refresh_token, create_access_token, jwt_required,
-    make_error,
+    make_error, Permissions
 )
-from ..models import UserModel, RoleModel
+from ..models import UserModel, RoleModel, PermissionModel
 from .utils import (
     is_username_unique, get_role_id, RoleNotExist, get_column_for_order,
 )
+
+permissions = Permissions(app_name='users')
 
 
 class Users(HTTPEndpoint):
     @staticmethod
     @jwt_required
+    @permissions.required(action='get')
     async def get(request):
         users_query = UserModel.outerjoin(RoleModel).select()
         total_query = db.select([db.func.count(UserModel.id)])
@@ -55,6 +58,8 @@ class Users(HTTPEndpoint):
 
     # TODO make this for admin only
     @with_transaction
+    @jwt_required
+    @permissions.required(action='create', return_user=True, return_role=True)
     async def post(self, request):
         data = await request.json()
         if not await is_username_unique(data['username']):
@@ -82,6 +87,7 @@ class Users(HTTPEndpoint):
 class User(HTTPEndpoint):
     @staticmethod
     @jwt_required
+    @permissions.required(action='get')
     async def get(request):
         user_id = request.path_params['user_id']
         users = await UserModel.outerjoin(RoleModel).select().where(
@@ -97,6 +103,7 @@ class User(HTTPEndpoint):
 
     @with_transaction
     @jwt_required
+    @permissions.required(action='update')
     async def patch(self, request):
         data = await request.json()
         user_id = request.path_params['user_id']
@@ -139,23 +146,40 @@ async def get_refresh_token(request):
     if not sha256.verify(data['password'], user.password):
         return make_error('Wrong credentials', status_code=401)
 
+    role = await RoleModel.get(user.role_id)
+    if role:
+        db_apps = await db.select([
+            PermissionModel.app_name
+        ]).select_from(
+            PermissionModel
+        ).where(
+            PermissionModel.role_id == role.id
+        ).group_by(
+            PermissionModel.app_name
+        ).gino.all()
+        apps = [app[0] for app in db_apps]
+    else:
+        apps = []
+
     return JSONResponse({
         'id': user.id,
         'email': user.email,
         'username': user.username,
         'refresh_token': create_refresh_token(user.session),
         'access_token': create_access_token(user.session),
+        'role': role.display_name if user else '',
+        'apps': apps
     })
 
 
-@jwt_required(return_user=True, token_type='refresh')
+@jwt_required(token_type='refresh')
 async def get_access_token(request, user):
     return JSONResponse({
-        'access_token': create_access_token(user.session)
+        'access_token': create_access_token(user.session),
     })
 
 
-@jwt_required(return_user=True)
+@jwt_required
 async def reset_session(request, user):
     data = await request.json()
 
@@ -169,9 +193,15 @@ async def reset_session(request, user):
     return Response('', status_code=204)
 
 
+@jwt_required
+async def get_actions(request, user):
+    return JSONResponse(await permissions.get_actions(user.role_id))
+
+
 routes = [
     Route('/', Users),
     Route('/{user_id:int}', User),
+    Route('/actions', get_actions, methods=['GET']),
     Route('/reset-session', reset_session, methods=['POST']),
     Route('/access-tokens', get_access_token, methods=['POST']),
     Route('/refresh-tokens', get_refresh_token, methods=['POST']),

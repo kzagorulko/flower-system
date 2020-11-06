@@ -1,5 +1,4 @@
-from . import UserModel
-from ..models import RoleModel
+from ..models import RoleModel, UserModel
 
 
 class RoleNotExist(ValueError):

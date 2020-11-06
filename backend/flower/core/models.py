@@ -1,4 +1,5 @@
-from .users import UserModel
-from .roles import RoleModel
+from .roles.models import RoleModel
+from .users.models import UserModel
+from .permissions.models import PermissionModel
 
-__all__ = ['UserModel', 'RoleModel']
+__all__ = ['UserModel', 'RoleModel', 'PermissionModel']
