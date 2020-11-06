@@ -22,16 +22,19 @@ export default {
         setCookie('username', data.identifier);
       });
   },
+
   logout: () => {
     destroyCookie('refresh_token');
     destroyCookie('access_token');
     destroyCookie('username');
     return Promise.resolve();
   },
+
   checkAuth: () => {
     const token = getCookie('access_token');
     return token ? Promise.resolve() : Promise.reject(new HttpError('Вы неавторизованы'));
   },
+
   checkError: (error) => {
     const { message } = error;
     if (message === 'Session expired') {
@@ -42,10 +45,22 @@ export default {
     }
     return Promise.resolve();
   },
-  getPermissions: () => {
-    const role = 'admin';
-    return role ? Promise.resolve(role) : Promise.reject();
+
+  getPermissions: (params) => {
+    let url = '';
+    if (Object.keys(params).length === 0) {
+      url = '/apps';
+    } else {
+      url = `${params}/actions`;
+    }
+    return request('GET', url, {})
+      .then((response) => {
+        const permissions = response.data;
+        return permissions;
+      })
+      .catch(() => Promise.reject(new HttpError('Ошибка доступа')));
   },
+
   getIdentity: () => {
     const fullName = getCookie('username');
     const id = 1;
