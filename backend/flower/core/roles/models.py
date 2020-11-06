@@ -1,4 +1,4 @@
-from ... import db
+from ..database import db
 
 
 class RoleModel(db.Model):
@@ -11,5 +11,5 @@ class RoleModel(db.Model):
     def jsonify(self):
         return {
             'name': self.name,
-            'displayName': self.name,
+            'displayName': self.display_name,
         }
