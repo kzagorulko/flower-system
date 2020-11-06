@@ -10,7 +10,7 @@ from ..utils import (
     with_transaction, create_refresh_token, create_access_token, jwt_required,
     make_error, Permissions
 )
-from ..models import UserModel, RoleModel, PermissionModel
+from ..models import UserModel, RoleModel
 from .utils import (
     is_username_unique, get_role_id, RoleNotExist, get_column_for_order,
 )
@@ -146,29 +146,12 @@ async def get_refresh_token(request):
     if not sha256.verify(data['password'], user.password):
         return make_error('Wrong credentials', status_code=401)
 
-    role = await RoleModel.get(user.role_id)
-    if role:
-        db_apps = await db.select([
-            PermissionModel.app_name
-        ]).select_from(
-            PermissionModel
-        ).where(
-            PermissionModel.role_id == role.id
-        ).group_by(
-            PermissionModel.app_name
-        ).gino.all()
-        apps = [app[0] for app in db_apps]
-    else:
-        apps = []
-
     return JSONResponse({
         'id': user.id,
         'email': user.email,
         'username': user.username,
         'refresh_token': create_refresh_token(user.session),
-        'access_token': create_access_token(user.session),
-        'role': role.display_name if user else '',
-        'apps': apps
+        'access_token': create_access_token(user.session)
     })
 
 

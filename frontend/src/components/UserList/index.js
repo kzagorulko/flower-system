@@ -12,18 +12,20 @@ import {
   Edit,
   TextInput,
   BooleanInput,
+  usePermissions,
 } from 'react-admin';
 
 const UserListActions = () => {
   const {
     basePath,
   } = useListContext();
+  const { loaded, permissions } = usePermissions('/users');
 
-  return (
+  return loaded ? (
     <TopToolbar>
-      <CreateButton basePath={basePath} />
+      {permissions.actions.includes('create') ? <CreateButton basePath={basePath} /> : null}
     </TopToolbar>
-  );
+  ) : <TopToolbar />;
 };
 
 export const UserCreate = (props) => (

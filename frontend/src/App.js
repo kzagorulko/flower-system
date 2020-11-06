@@ -8,8 +8,19 @@ import UserShow from './components/UserShow';
 import './App.less';
 
 const App = () => (
-  <Admin title="Example" dataProvider={dataProvider} authProvider={authProvider}>
-    <Resource name="users" list={UserList} show={UserShow} create={UserCreate} edit={UserEdit} />
+  <Admin title="Flower System" dataProvider={dataProvider} authProvider={authProvider}>
+    {(permissions) => [
+      permissions.users
+        ? (
+          <Resource
+            name="users"
+            list={UserList}
+            show={UserShow}
+            create={permissions.users.includes('create') ? UserCreate : null}
+            edit={permissions.users.includes('update') ? UserEdit : null}
+          />
+        ) : null,
+    ]}
   </Admin>
 );
 
