@@ -1,6 +1,6 @@
 from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 
 
 from ..database import db
@@ -84,9 +84,11 @@ class Provider(HTTPEndpoint):
 
     @with_transaction
     @jwt_required
-    @permissions.required(action='update')
+    @permissions.required(
+        action='update', additional_actions=['update_status']
+    )
     async def patch(self, request):
-        pass
+        return Response('', status_code=204)
 
 
 @jwt_required

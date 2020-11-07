@@ -171,7 +171,8 @@ class Permissions:
         self.app_name = app_name
 
     def required(
-            self, action, *arguments, return_role=False, return_user=False
+            self, action, *arguments, return_role=False, return_user=False,
+            additional_actions=()
     ):
         def wrapper(func):
             async def wrapper_view(*args, user, **kwargs):
@@ -182,13 +183,19 @@ class Permissions:
                     return make_error(
                         "User doesn't have a role", status_code=403
                     )
-                permission = await PermissionModel.query.where(
-                    (PermissionModel.app_name == self.app_name)
-                    & (PermissionModel.action == action)
-                    & (PermissionModel.role_id == role.id)
-                ).gino.first()
+                actions_clause = (PermissionModel.action == action)
+                for additional_action in additional_actions:
+                    actions_clause |= (
+                            PermissionModel.action == additional_action
+                    )
 
-                if not permission:
+                permissions = await PermissionModel.query.where(
+                    (PermissionModel.app_name == self.app_name)
+                    & actions_clause
+                    & (PermissionModel.role_id == role.id)
+                ).gino.all()
+
+                if not permissions:
                     return make_error(
                         "Forbidden", status_code=403
                     )
