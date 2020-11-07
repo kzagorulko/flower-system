@@ -1,8 +1,11 @@
 import React from 'react';
-import { Admin, Resource } from 'react-admin';
+import {
+  Admin, Resource, ShowGuesser,
+} from 'react-admin';
 import dataProvider from './api/dataProvider';
 import authProvider from './api/authProvider';
 import { UserList, UserCreate, UserEdit } from './components/UserList';
+import { ProviderList, ProviderCreate, ProviderEdit } from './components/ProviderList';
 import UserShow from './components/UserShow';
 
 import './App.less';
@@ -20,6 +23,13 @@ const App = () => (
             edit={permissions.users.includes('update') ? UserEdit : null}
           />
         ) : null,
+      <Resource
+        name="providers"
+        list={ProviderList}
+        show={ShowGuesser}
+        create={ProviderCreate}
+        edit={ProviderEdit}
+      />,
     ]}
   </Admin>
 );
