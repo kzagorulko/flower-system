@@ -200,15 +200,16 @@ class Permissions:
                         "Forbidden", status_code=403
                     )
 
-                results = {}
-                if return_actions:
-                    results['actions'] = [
-                            permission.action for permission in permissions
-                        ]
-                if return_user:
-                    results['user'] = user
-                if return_role:
-                    results['role'] = role
+                actions = [permission.action for permission in permissions]
+
+                return_values = {
+                    'actions': (return_actions, actions),
+                    'user': (return_user, user),
+                    'role': (return_role, role),
+                }
+
+                results = self.get_results(return_values)
+
                 return await func(*args, **results, **kwargs)
 
             return wrapper_view
@@ -229,3 +230,12 @@ class Permissions:
         return {
             'actions': [action[0] for action in actions]
         }
+
+    @staticmethod
+    def get_results(return_values):
+        results = {}
+        for key, value in return_values.items():
+            if value[0]:
+                results[key] = value[1]
+
+        return results
