@@ -1,6 +1,7 @@
 import jwt
 import datetime
 
+from pytz import utc
 from functools import wraps
 from starlette.requests import Request
 from starlette.responses import Response, JSONResponse
@@ -218,3 +219,15 @@ class Permissions:
         return {
             'actions': [action[0] for action in actions]
         }
+
+
+def convert_to_utc(dt):
+    """Return same datetime if it's aware or sets it's timezone to UTC."""
+
+    if dt is None:
+        dt = datetime.datetime.utcfromtimestamp(0)
+
+    if dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None:
+        return dt.replace(tzinfo=utc)
+
+    return dt
