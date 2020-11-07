@@ -12,6 +12,7 @@ import {
   Edit,
   TextInput,
   BooleanInput,
+  AutocompleteInput,
   usePermissions,
 } from 'react-admin';
 
@@ -35,7 +36,17 @@ export const UserCreate = (props) => (
       <TextInput source="password" />
       <TextInput source="displayName" />
       <TextInput source="email" />
-      <TextInput source="role" />
+      <AutocompleteInput
+        source="role"
+        choices={[
+          { id: 'admin', name: 'Администратор' },
+          { id: 'sales_department', name: 'Отдел продаж' },
+          { id: 'law_department', name: 'Юридический отдел' },
+          { id: 'logistics_department', name: 'Отдел логистики' },
+          { id: 'branches', name: 'Филиал' },
+          { id: 'demo', name: 'Демо' },
+        ]}
+      />
     </SimpleForm>
   </Create>
 );
@@ -48,7 +59,17 @@ export const UserEdit = (props) => (
       <TextInput source="displayName" />
       <TextInput source="password" />
       <BooleanInput source="deactivated" />
-      <TextInput source="role" />
+      <AutocompleteInput
+        source="role"
+        choices={[
+          { id: 'admin', name: 'Администратор' },
+          { id: 'sales_department', name: 'Отдел продаж' },
+          { id: 'law_department', name: 'Юридический отдел' },
+          { id: 'logistics_department', name: 'Отдел логистики' },
+          { id: 'branches', name: 'Филиал' },
+          { id: 'demo', name: 'Демо' },
+        ]}
+      />
     </SimpleForm>
   </Edit>
 );

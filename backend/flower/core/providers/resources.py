@@ -59,12 +59,16 @@ class Providers(HTTPEndpoint):
     async def post(self, request):
         data = await request.json()
         if not await is_name_unique(data['name']):
-            return make_error('Fuck', status_code=400)
+            return make_error('Provider already exists', status_code=400)
+
+        if 'email' not in data and 'phone' not in data:
+            return make_error('No contacts for provider', status_code=400)
+
         new_provider = await ProviderModel.create(
             name=data['name'],
-            email=data['email'],
-            phone=data['phone'],
-            status="NEW",
+            email=data['email'] if 'email' in data else None,
+            phone=data['phone'] if 'phone' in data else None,
+            status='NEW',
             data=data['data'],
             address=data['address'],
         )
@@ -85,9 +89,34 @@ class Provider(HTTPEndpoint):
     @with_transaction
     @jwt_required
     @permissions.required(
-        action='update', additional_actions=['update_status']
+        action='update',
+        additional_actions=['update_status'],
+        return_actions=True
     )
-    async def patch(self, request):
+    async def patch(self, request, actions):
+        data = await request.json()
+        provider_id = request.path_params['provider_id']
+        provider = await ProviderModel.get(provider_id)
+        if not provider:
+            return make_error(
+                f'Provider with id {provider_id} not found', status_code=404
+            )
+
+        values = {}
+        if 'update' in actions:
+            values['name'] = data['name'] if 'name' in data else None
+            values['phone'] = data['phone'] if 'phone' in data else None
+            values['email'] = data['email'] if 'email' in data else None
+            values['data'] = data['data'] if 'data' in data else None
+            values['address'] = data['address'] if 'address' in data else None
+        if 'update_status' in actions:
+            values['status'] = (
+                data['status'].upper() if 'status' in data else None
+            )
+
+        values = dict(filter(lambda item: item[1] is not None, values.items()))
+
+        await provider.update(**values).apply()
         return Response('', status_code=204)
 
 

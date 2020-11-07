@@ -172,7 +172,7 @@ class Permissions:
 
     def required(
             self, action, *arguments, return_role=False, return_user=False,
-            additional_actions=()
+            additional_actions=(), return_actions=False
     ):
         def wrapper(func):
             async def wrapper_view(*args, user, **kwargs):
@@ -201,6 +201,10 @@ class Permissions:
                     )
 
                 results = {}
+                if return_actions:
+                    results['actions'] = [
+                            permission.action for permission in permissions
+                        ]
                 if return_user:
                     results['user'] = user
                 if return_role:

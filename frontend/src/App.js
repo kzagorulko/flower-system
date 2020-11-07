@@ -23,13 +23,17 @@ const App = () => (
             edit={permissions.users.includes('update') ? UserEdit : null}
           />
         ) : null,
-      <Resource
-        name="providers"
-        list={ProviderList}
-        show={ShowGuesser}
-        create={ProviderCreate}
-        edit={ProviderEdit}
-      />,
+      permissions.providers
+        ? (
+          <Resource
+            name="providers"
+            list={ProviderList}
+            show={ShowGuesser}
+            create={permissions.providers.includes('create') ? ProviderCreate : null}
+            edit={permissions.providers.includes('update')
+              || permissions.providers.includes('update_status') ? ProviderEdit : null}
+          />
+        ) : null,
     ]}
   </Admin>
 );

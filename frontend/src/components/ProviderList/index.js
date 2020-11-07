@@ -11,6 +11,7 @@ import {
   Create,
   Edit,
   TextInput,
+  AutocompleteInput,
   usePermissions,
 } from 'react-admin';
 
@@ -39,18 +40,32 @@ export const ProviderCreate = (props) => (
   </Create>
 );
 
-export const ProviderEdit = (props) => (
-  <Edit undoable={false} {...props}>
-    <SimpleForm>
-      <TextInput disabled source="id" />
-      <TextInput source="name" />
-      <TextInput source="email" />
-      <TextInput source="phone" />
-      <TextInput source="address" />
-      <TextInput source="data" />
-    </SimpleForm>
-  </Edit>
-);
+export const ProviderEdit = (props) => {
+  const { loaded, permissions } = usePermissions('/providers');
+
+  return loaded ? (
+    <Edit undoable={false} {...props}>
+      <SimpleForm>
+        <TextInput disabled source="id" />
+        <TextInput disabled={!permissions.actions.includes('update')} source="name" />
+        <TextInput disabled={!permissions.actions.includes('update')} source="email" />
+        <TextInput disabled={!permissions.actions.includes('update')} source="phone" />
+        <TextInput disabled={!permissions.actions.includes('update')} source="address" />
+        <TextInput disabled={!permissions.actions.includes('update')} source="data" />
+        <AutocompleteInput
+          source="status"
+          disabled={!permissions.actions.includes('update_status')}
+          choices={[
+            { id: 'new', name: 'New' },
+            { id: 'cooperate', name: 'Cooperate' },
+            { id: 'fraud', name: 'Fraud' },
+            { id: 'stopped', name: 'Stopped' },
+          ]}
+        />
+      </SimpleForm>
+    </Edit>
+  ) : null;
+};
 
 export const ProviderList = (props) => (
   <List {...props} actions={<ProviderListActions />}>
