@@ -171,8 +171,8 @@ class Permissions:
         self.app_name = app_name
 
     def required(
-            self, action, *arguments, return_role=False, return_user=False,
-            additional_actions=(), return_actions=False
+            self, action, additional_actions=(), *arguments,
+            return_role=False, return_user=False, return_actions=False
     ):
         def wrapper(func):
             async def wrapper_view(*args, user, **kwargs):

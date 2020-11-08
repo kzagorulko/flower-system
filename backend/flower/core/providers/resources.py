@@ -5,6 +5,7 @@ from starlette.responses import JSONResponse, Response
 
 from ..database import db
 from ..models import ProviderModel
+from .models import ProviderStatusTypes
 from ..utils import (
     make_error, with_transaction, jwt_required, Permissions
 )
@@ -20,14 +21,17 @@ class Providers(HTTPEndpoint):
     @jwt_required
     @permissions.required(action='get')
     async def get(request):
-        providers_query = db.select([ProviderModel])
+        providers_query = ProviderModel.query
         total_query = db.select([db.func.count(ProviderModel.id)])
 
         query_params = request.query_params
 
-        if 'search' in query_params:
-            providers_query.where(
-                ProviderModel.name.ilike(f'%{query_params["search"]}%')
+        if 'name' in query_params:
+            providers_query = providers_query.where(
+                ProviderModel.name.ilike(f'%{query_params["name"]}%')
+            )
+            total_query = total_query.where(
+                ProviderModel.name.ilike(f'%{query_params["name"]}%')
             )
 
         if 'page' in query_params and 'perPage' in query_params:
@@ -46,7 +50,7 @@ class Providers(HTTPEndpoint):
             )
 
         total = await total_query.gino.scalar()
-        providers = await providers_query.gino.load(ProviderModel).all()
+        providers = await providers_query.gino.all()
 
         return JSONResponse({
             'items': [provider.jsonify() for provider in providers],
@@ -68,7 +72,7 @@ class Providers(HTTPEndpoint):
             name=data['name'],
             email=data['email'] if 'email' in data else None,
             phone=data['phone'] if 'phone' in data else None,
-            status='NEW',
+            status=ProviderStatusTypes.NEW,
             data=data['data'],
             address=data['address'],
         )
@@ -102,12 +106,13 @@ class Provider(HTTPEndpoint):
                 f'Provider with id {provider_id} not found', status_code=404
             )
 
-        values = {}
+        values = {
+            'data': data['data'] if 'data' in data else None,
+        }
         if 'update' in actions:
             values['name'] = data['name'] if 'name' in data else None
             values['phone'] = data['phone'] if 'phone' in data else None
             values['email'] = data['email'] if 'email' in data else None
-            values['data'] = data['data'] if 'data' in data else None
             values['address'] = data['address'] if 'address' in data else None
         if 'update_status' in actions:
             values['status'] = (

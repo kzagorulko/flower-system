@@ -28,9 +28,16 @@ class Users(HTTPEndpoint):
 
         query_params = request.query_params
 
-        if 'search' in query_params:
-            users_query.where(
-                UserModel.display_name.ilike(f'%{query_params["search"]}%')
+        if 'display_name' in query_params:
+            users_query = users_query.where(
+                UserModel.display_name.ilike(
+                    f'%{query_params["display_name"]}%'
+                )
+            )
+            total_query = total_query.where(
+                UserModel.display_name.ilike(
+                    f'%{query_params["display_name"]}%'
+                )
             )
 
         if 'page' in query_params and 'perPage' in query_params:

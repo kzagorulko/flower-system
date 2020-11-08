@@ -12,6 +12,7 @@ import {
   Edit,
   TextInput,
   AutocompleteInput,
+  Filter,
   usePermissions,
 } from 'react-admin';
 
@@ -28,6 +29,12 @@ const ProviderListActions = () => {
   ) : <TopToolbar />;
 };
 
+const ProviderFilter = (props) => (
+  <Filter {...props}>
+    <TextInput label="Search" source="name" alwaysOn />
+  </Filter>
+);
+
 export const ProviderCreate = (props) => (
   <Create {...props}>
     <SimpleForm>
@@ -35,7 +42,7 @@ export const ProviderCreate = (props) => (
       <TextInput source="email" />
       <TextInput source="phone" />
       <TextInput source="address" />
-      <TextInput source="data" />
+      <TextInput multiline source="data" />
     </SimpleForm>
   </Create>
 );
@@ -51,7 +58,14 @@ export const ProviderEdit = (props) => {
         <TextInput disabled={!permissions.actions.includes('update')} source="email" />
         <TextInput disabled={!permissions.actions.includes('update')} source="phone" />
         <TextInput disabled={!permissions.actions.includes('update')} source="address" />
-        <TextInput disabled={!permissions.actions.includes('update')} source="data" />
+        <TextInput
+          multiline
+          disabled={
+            !permissions.actions.includes('update')
+            && !permissions.actions.includes('update_status')
+          }
+          source="data"
+        />
         <AutocompleteInput
           source="status"
           disabled={!permissions.actions.includes('update_status')}
@@ -68,7 +82,7 @@ export const ProviderEdit = (props) => {
 };
 
 export const ProviderList = (props) => (
-  <List {...props} actions={<ProviderListActions />}>
+  <List {...props} actions={<ProviderListActions />} filters={<ProviderFilter />}>
     <Datagrid rowClick="edit">
       <TextField source="id" />
       <TextField source="name" />

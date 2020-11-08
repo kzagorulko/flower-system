@@ -13,6 +13,7 @@ import {
   TextInput,
   BooleanInput,
   AutocompleteInput,
+  Filter,
   usePermissions,
 } from 'react-admin';
 
@@ -28,6 +29,12 @@ const UserListActions = () => {
     </TopToolbar>
   ) : <TopToolbar />;
 };
+
+const UserFilter = (props) => (
+  <Filter {...props}>
+    <TextInput label="Search" source="display_name" alwaysOn />
+  </Filter>
+);
 
 export const UserCreate = (props) => (
   <Create {...props}>
@@ -75,7 +82,7 @@ export const UserEdit = (props) => (
 );
 
 export const UserList = (props) => (
-  <List {...props} actions={<UserListActions />}>
+  <List {...props} actions={<UserListActions />} filters={<UserFilter />}>
     <Datagrid rowClick="edit">
       <TextField source="id" />
       <TextField source="displayName" />
