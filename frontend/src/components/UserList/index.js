@@ -12,6 +12,8 @@ import {
   Edit,
   TextInput,
   BooleanInput,
+  AutocompleteInput,
+  Filter,
   usePermissions,
 } from 'react-admin';
 
@@ -28,6 +30,12 @@ const UserListActions = () => {
   ) : <TopToolbar />;
 };
 
+const UserFilter = (props) => (
+  <Filter {...props}>
+    <TextInput label="Search" source="display_name" alwaysOn />
+  </Filter>
+);
+
 export const UserCreate = (props) => (
   <Create {...props}>
     <SimpleForm>
@@ -35,7 +43,17 @@ export const UserCreate = (props) => (
       <TextInput source="password" />
       <TextInput source="displayName" />
       <TextInput source="email" />
-      <TextInput source="role" />
+      <AutocompleteInput
+        source="role"
+        choices={[
+          { id: 'admin', name: 'Администратор' },
+          { id: 'sales_department', name: 'Отдел продаж' },
+          { id: 'law_department', name: 'Юридический отдел' },
+          { id: 'logistics_department', name: 'Отдел логистики' },
+          { id: 'branches', name: 'Филиал' },
+          { id: 'demo', name: 'Демо' },
+        ]}
+      />
     </SimpleForm>
   </Create>
 );
@@ -48,13 +66,23 @@ export const UserEdit = (props) => (
       <TextInput source="displayName" />
       <TextInput source="password" />
       <BooleanInput source="deactivated" />
-      <TextInput source="role" />
+      <AutocompleteInput
+        source="role"
+        choices={[
+          { id: 'admin', name: 'Администратор' },
+          { id: 'sales_department', name: 'Отдел продаж' },
+          { id: 'law_department', name: 'Юридический отдел' },
+          { id: 'logistics_department', name: 'Отдел логистики' },
+          { id: 'branches', name: 'Филиал' },
+          { id: 'demo', name: 'Демо' },
+        ]}
+      />
     </SimpleForm>
   </Edit>
 );
 
 export const UserList = (props) => (
-  <List {...props} actions={<UserListActions />}>
+  <List {...props} actions={<UserListActions />} filters={<UserFilter />}>
     <Datagrid rowClick="edit">
       <TextField source="id" />
       <TextField source="displayName" />
