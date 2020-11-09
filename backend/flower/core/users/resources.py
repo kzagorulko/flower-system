@@ -10,10 +10,12 @@ from ..utils import (
     with_transaction, create_refresh_token, create_access_token, jwt_required,
     make_error, Permissions
 )
-from ..models import UserModel, RoleModel
+from ..models import UserModel, RoleModel, UserBranchModel
 from .utils import (
     is_username_unique, get_role_id, RoleNotExist, get_column_for_order,
 )
+
+from ..branches.utils import get_by_address
 
 permissions = Permissions(app_name='users')
 
@@ -88,6 +90,16 @@ class Users(HTTPEndpoint):
             email=data['email'],
             role_id=role_id
         )
+        try:
+            if data['branch']:
+                new_user_x_branch = await UserBranchModel.create(
+                    user_id=new_user.id,
+                    branch_id=await get_by_address(data)
+
+                )
+        except RoleNotExist:
+            return make_error("Role doesn't exist", status_code=404)
+
         return JSONResponse({'id': new_user.id})
 
 
@@ -123,7 +135,7 @@ class User(HTTPEndpoint):
         try:
             role_id = await get_role_id(data)
         except RoleNotExist:
-            return make_error("Role does't exist", status_code=404)
+            return make_error("Role doesn't exist", status_code=404)
 
         values = {
             'display_name': data['displayName']

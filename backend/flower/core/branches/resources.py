@@ -16,7 +16,7 @@ class Branches(HTTPEndpoint):
     @staticmethod
     @jwt_required
     @permissions.required(action='get')
-    async def get(self, request):
+    async def get(request):
         branches_query = BranchModel.query
         total_query = db.select([db.func.count(BranchModel.id)])
 
@@ -25,6 +25,9 @@ class Branches(HTTPEndpoint):
         if 'search' in query_params:
             branches_query.where(
                 BranchModel.display_name.ilike(f'%{query_params["search"]}%')
+            )
+            total_query = total_query.where(
+                BranchModel.address.ilike(f'%{query_params["address"]}%')
             )
 
         if 'page' in query_params and 'perPage' in query_params:
@@ -48,7 +51,6 @@ class Branches(HTTPEndpoint):
             'total': total,
         })
 
-    @staticmethod
     @with_transaction
     @jwt_required
     @permissions.required(action='create')
@@ -68,6 +70,7 @@ class Branches(HTTPEndpoint):
 
 
 class Branch(HTTPEndpoint):
+
     @staticmethod
     @jwt_required
     @permissions.required(action='get')
@@ -78,13 +81,12 @@ class Branch(HTTPEndpoint):
             return JSONResponse(branch.jsonify(for_card=True))
         return make_error(description='Branch not found', status_code=404)
 
-    @staticmethod
     @with_transaction
     @jwt_required
     @permissions.required(action='update')
     async def patch(self, request):
         data = await request.json()
-        branch_id = request.path_params['id']
+        branch_id = request.path_params['branch_id']
         branch = await BranchModel.get(branch_id)
 
         if not branch:
@@ -102,11 +104,6 @@ class Branch(HTTPEndpoint):
         await branch.update(**values).apply()
 
         return Response('', status_code=204)
-
-
-@jwt_required
-async def get_actions(request, user):
-    return JSONResponse(await permissions.get_actions(user.role_id))
 
 
 routes = [
