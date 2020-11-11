@@ -105,12 +105,8 @@ class Users(HTTPEndpoint):
             email=data['email'],
             role_id=role_id
         )
-        try:
-            if data['branches']:
-                await change_branches(data['branches'], new_user.id)
-
-        except RoleNotExist:
-            return make_error("Role doesn't exist", status_code=404)
+        if data['branches']:
+            await change_branches(data['branches'], new_user.id)
 
         return JSONResponse({'id': new_user.id})
 
