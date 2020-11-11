@@ -19,7 +19,7 @@ class BranchModel(db.Model):
     def users(self, value):
         self._users = value
 
-    def jsonify(self, for_card = False):
+    def jsonify(self, for_card=False):
         result = {
             'id': self.id,
             'address': self.address
