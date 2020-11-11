@@ -3,7 +3,7 @@ from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
 
 from ..utils import jwt_required, make_error, with_transaction, Permissions
-from ..models import BranchModel
+from ..models import BranchModel, UserModel, UserBranchModel, RoleModel
 
 from .utils import is_address_unique, get_column_for_order
 
@@ -78,9 +78,29 @@ class Branch(HTTPEndpoint):
     @permissions.required(action='get_one')
     async def get(request):
         branch_id = request.path_params['branch_id']
-        branch = await BranchModel.get(branch_id)
-        if branch:
-            return JSONResponse(branch.jsonify(for_card=True))
+        users_query = UserModel.outerjoin(UserBranchModel).select()
+        users_query = users_query.where(
+            UserBranchModel.branch_id == branch_id
+        )
+
+        users = await users_query.gino.load(
+            UserModel.distinct(UserModel.id).load(
+                role=RoleModel, branch=UserBranchModel
+            )
+        ).all()
+
+        branches = await BranchModel.outerjoin(
+            UserBranchModel
+        ).select().where(
+            BranchModel.id == branch_id
+        ).gino.load(
+            BranchModel.distinct(
+                BranchModel.id
+            ).load(users=users)
+        ).all()
+
+        if branches:
+            return JSONResponse(branches[0].jsonify(for_card=True))
         return make_error(description='Branch not found', status_code=404)
 
     @with_transaction
