@@ -41,8 +41,9 @@ def get_column_for_order(column_name, asc=True):
 
 async def change_branches(branches, user_id):
     if len(branches) == 0:
-        await UserBranchModel.delete\
-            .where(UserBranchModel.user_id == user_id).gino.status()
+        await UserBranchModel.delete.where(
+            UserBranchModel.user_id == user_id
+        ).gino.status()
     else:
         branchesExist = await UserBranchModel.query.where(
             (UserBranchModel.user_id == user_id) &
@@ -51,8 +52,8 @@ async def change_branches(branches, user_id):
 
         if len(branchesExist) != len(branches):
             await UserBranchModel.delete.where(
-                ~((UserBranchModel.user_id == user_id) &
-                  (UserBranchModel.branch_id in branches))
+                ((UserBranchModel.user_id == user_id) &
+                 ~(UserBranchModel.branch_id in branches))
             ).gino.status()
 
             models_ids = [branchesExist.id for model in branchesExist]
@@ -63,5 +64,6 @@ async def change_branches(branches, user_id):
                 if branch not in models_ids:
                     result.append({'user_id': user_id, 'branch_id': branch})
 
-            await insert(UserBranchModel)\
-                .values(result).on_conflict_do_nothing().gino.scalar()
+            await insert(UserBranchModel).values(
+                result
+            ).on_conflict_do_nothing().gino.scalar()

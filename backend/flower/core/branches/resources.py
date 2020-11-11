@@ -22,9 +22,9 @@ class Branches(HTTPEndpoint):
 
         query_params = request.query_params
 
-        if 'search' in query_params:
+        if 'address' in query_params:
             branches_query.where(
-                BranchModel.display_name.ilike(f'%{query_params["search"]}%')
+                BranchModel.address.ilike(f'%{query_params["address"]}%')
             )
             total_query = total_query.where(
                 BranchModel.address.ilike(f'%{query_params["address"]}%')
@@ -33,8 +33,9 @@ class Branches(HTTPEndpoint):
         if 'page' in query_params and 'perPage' in query_params:
             page = int(query_params['page']) - 1
             per_page = int(query_params['perPage'])
-            branches_query = branches_query.\
-                limit(per_page).offset(page * per_page)
+            branches_query.limit(
+                per_page
+            ).offset(page * per_page)
 
         if 'order' in query_params and 'field' in query_params:
             branches_query = branches_query.order_by(
@@ -74,7 +75,7 @@ class Branch(HTTPEndpoint):
 
     @staticmethod
     @jwt_required
-    @permissions.required(action='get')
+    @permissions.required(action='get_one')
     async def get(request):
         branch_id = request.path_params['branch_id']
         branch = await BranchModel.get(branch_id)
@@ -102,12 +103,19 @@ class Branch(HTTPEndpoint):
 
         values = dict(filter(lambda item: item[1] is not None, values.items()))
 
-        await branch.update(**values).apply()
+        if values:
+            await branch.update(**values).apply()
 
         return Response('', status_code=204)
 
 
+@jwt_required
+async def get_actions(request, user):
+    return JSONResponse(await permissions.get_actions(user.role_id))
+
+
 routes = [
     Route('/', Branches),
+    Route('/actions', get_actions, methods=['GET']),
     Route('/{branch_id:int}', Branch),
 ]

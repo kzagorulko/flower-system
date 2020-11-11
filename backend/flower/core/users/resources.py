@@ -24,8 +24,9 @@ class Users(HTTPEndpoint):
     @jwt_required
     @permissions.required(action='get')
     async def get(request):
-        users_query = UserModel.outerjoin(RoleModel)\
-            .outerjoin(UserBranchModel).outerjoin(BranchModel).select()
+        users_query = UserModel.outerjoin(
+            RoleModel
+        ).outerjoin(UserBranchModel).select()
         total_query = db.select([db.func.count(UserModel.id)])
 
         query_params = request.query_params
@@ -120,12 +121,14 @@ class User(HTTPEndpoint):
     @permissions.required(action='get')
     async def get(request):
         user_id = request.path_params['user_id']
-        users = await UserModel.outerjoin(RoleModel)\
-            .outerjoin(UserBranchModel).outerjoin(BranchModel).select().where(
+        users = await UserModel.outerjoin(
+            RoleModel
+        ).outerjoin(UserBranchModel).select().where(
             UserModel.id == user_id
         ).gino.load(
-            UserModel.distinct(UserModel.id)
-                .load(role=RoleModel, branches=UserBranchModel)
+            UserModel.distinct(
+                UserModel.id
+            ).load(role=RoleModel, branches=UserBranchModel)
         ).all()
         if users:
             return JSONResponse(users[0].jsonify(for_card=True))
