@@ -20,7 +20,8 @@ class UserBranchModel(db.Model):
     __tablename__ = 'user_x_branch'
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'), nullable=False)
+    branch_id = db.Column(db.Integer,
+                          db.ForeignKey('branches.id'), nullable=False)
 
     def jsonify(self, for_card=False):
         result = {

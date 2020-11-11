@@ -1,4 +1,4 @@
-from .models import BranchModel, UserBranchModel
+from .models import BranchModel
 
 
 class BranchNotExist(ValueError):

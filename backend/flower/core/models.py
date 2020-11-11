@@ -4,4 +4,5 @@ from .permissions.models import PermissionModel
 from .providers.models import ProviderModel
 from .branches.models import BranchModel, UserBranchModel
 
-__all__ = ['UserModel', 'RoleModel', 'PermissionModel', 'ProviderModel', 'BranchModel', 'UserBranchModel']
+__all__ = ['UserModel', 'RoleModel', 'PermissionModel',
+           'ProviderModel', 'BranchModel', 'UserBranchModel']

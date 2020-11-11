@@ -33,7 +33,8 @@ class Branches(HTTPEndpoint):
         if 'page' in query_params and 'perPage' in query_params:
             page = int(query_params['page']) - 1
             per_page = int(query_params['perPage'])
-            branches_query = branches_query.limit(per_page).offset(page * per_page)
+            branches_query = branches_query.\
+                limit(per_page).offset(page * per_page)
 
         if 'order' in query_params and 'field' in query_params:
             branches_query = branches_query.order_by(

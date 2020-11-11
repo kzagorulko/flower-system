@@ -12,7 +12,8 @@ from ..utils import (
 )
 from ..models import UserModel, RoleModel, UserBranchModel, BranchModel
 from .utils import (
-    is_username_unique, get_role_id, RoleNotExist, get_column_for_order, change_branches
+    is_username_unique, get_role_id, RoleNotExist,
+    get_column_for_order, change_branches
 )
 
 permissions = Permissions(app_name='users')
@@ -68,8 +69,9 @@ class Users(HTTPEndpoint):
 
         total = await total_query.gino.scalar()
         users = await users_query.gino.load(
-            UserModel.distinct(UserModel.id)
-                .load(role=RoleModel, branch=UserBranchModel)
+            UserModel.distinct(UserModel.id).load(
+                role=RoleModel, branch=UserBranchModel
+            )
         ).all()
 
         return JSONResponse({
@@ -118,10 +120,12 @@ class User(HTTPEndpoint):
     @permissions.required(action='get')
     async def get(request):
         user_id = request.path_params['user_id']
-        users = await UserModel.outerjoin(RoleModel).outerjoin(UserBranchModel).outerjoin(BranchModel).select().where(
+        users = await UserModel.outerjoin(RoleModel)\
+            .outerjoin(UserBranchModel).outerjoin(BranchModel).select().where(
             UserModel.id == user_id
         ).gino.load(
-            UserModel.distinct(UserModel.id).load(role=RoleModel, branches=UserBranchModel)
+            UserModel.distinct(UserModel.id)
+                .load(role=RoleModel, branches=UserBranchModel)
         ).all()
         if users:
             return JSONResponse(users[0].jsonify(for_card=True))
