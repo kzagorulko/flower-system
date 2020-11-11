@@ -43,18 +43,6 @@ class Users(HTTPEndpoint):
                 )
             )
 
-        if 'branch' in query_params:
-            users_query = users_query.where(
-                BranchModel.address.ilike(
-                    f'%{query_params["branch"]}%'
-                )
-            )
-            total_query = total_query.where(
-                BranchModel.address.ilike(
-                    f'%{query_params["branch"]}%'
-                )
-            )
-
         if 'page' in query_params and 'perPage' in query_params:
             page = int(query_params['page']) - 1
             per_page = int(query_params['perPage'])
