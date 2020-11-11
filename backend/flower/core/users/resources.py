@@ -10,7 +10,7 @@ from ..utils import (
     with_transaction, create_refresh_token, create_access_token, jwt_required,
     make_error, Permissions
 )
-from ..models import UserModel, RoleModel, UserBranchModel, BranchModel
+from ..models import UserModel, RoleModel, UserBranchModel
 from .utils import (
     is_username_unique, get_role_id, RoleNotExist,
     get_column_for_order, change_branches
