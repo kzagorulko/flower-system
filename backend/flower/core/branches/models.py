@@ -10,11 +10,8 @@ class BranchModel(db.Model):
     def jsonify(self, for_card=False):
         result = {
             'id': self.id,
-            'address': self.address,
+            'address': self.address
         }
-
-        if for_card:
-            result['address'] = self.address
 
         return result
 
@@ -24,3 +21,11 @@ class UserBranchModel(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     branch_id = db.Column(db.Integer, db.ForeignKey('branches.id'), nullable=False)
+
+    def jsonify(self, for_card=False):
+        result = {
+            'user_id': self.user_id,
+            'branch_id': self.branch_id,
+        }
+
+        return result

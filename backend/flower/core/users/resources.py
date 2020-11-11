@@ -10,12 +10,10 @@ from ..utils import (
     with_transaction, create_refresh_token, create_access_token, jwt_required,
     make_error, Permissions
 )
-from ..models import UserModel, RoleModel, UserBranchModel
+from ..models import UserModel, RoleModel, UserBranchModel, BranchModel
 from .utils import (
-    is_username_unique, get_role_id, RoleNotExist, get_column_for_order,
+    is_username_unique, get_role_id, RoleNotExist, get_column_for_order, change_branches
 )
-
-from ..branches.utils import get_by_address
 
 permissions = Permissions(app_name='users')
 
@@ -25,7 +23,8 @@ class Users(HTTPEndpoint):
     @jwt_required
     @permissions.required(action='get')
     async def get(request):
-        users_query = UserModel.outerjoin(RoleModel).select()
+        users_query = UserModel.outerjoin(RoleModel)\
+            .outerjoin(UserBranchModel).outerjoin(BranchModel).select()
         total_query = db.select([db.func.count(UserModel.id)])
 
         query_params = request.query_params
@@ -39,6 +38,18 @@ class Users(HTTPEndpoint):
             total_query = total_query.where(
                 UserModel.display_name.ilike(
                     f'%{query_params["display_name"]}%'
+                )
+            )
+
+        if 'branch' in query_params:
+            users_query = users_query.where(
+                BranchModel.address.ilike(
+                    f'%{query_params["branch"]}%'
+                )
+            )
+            total_query = total_query.where(
+                BranchModel.address.ilike(
+                    f'%{query_params["branch"]}%'
                 )
             )
 
@@ -57,7 +68,8 @@ class Users(HTTPEndpoint):
 
         total = await total_query.gino.scalar()
         users = await users_query.gino.load(
-            UserModel.distinct(UserModel.id).load(role=RoleModel)
+            UserModel.distinct(UserModel.id)
+                .load(role=RoleModel, branch=UserBranchModel)
         ).all()
 
         return JSONResponse({
@@ -91,12 +103,9 @@ class Users(HTTPEndpoint):
             role_id=role_id
         )
         try:
-            if data['branch']:
-                new_user_x_branch = await UserBranchModel.create(
-                    user_id=new_user.id,
-                    branch_id=await get_by_address(data)
+            if data['branches']:
+                await change_branches(data['branches'], new_user.id)
 
-                )
         except RoleNotExist:
             return make_error("Role doesn't exist", status_code=404)
 
@@ -109,10 +118,10 @@ class User(HTTPEndpoint):
     @permissions.required(action='get')
     async def get(request):
         user_id = request.path_params['user_id']
-        users = await UserModel.outerjoin(RoleModel).select().where(
+        users = await UserModel.outerjoin(RoleModel).outerjoin(UserBranchModel).outerjoin(BranchModel).select().where(
             UserModel.id == user_id
         ).gino.load(
-            UserModel.distinct(UserModel.id).load(role=RoleModel)
+            UserModel.distinct(UserModel.id).load(role=RoleModel, branches=UserBranchModel)
         ).all()
         if users:
             return JSONResponse(users[0].jsonify(for_card=True))
@@ -137,6 +146,9 @@ class User(HTTPEndpoint):
         except RoleNotExist:
             return make_error("Role doesn't exist", status_code=404)
 
+        if 'branches' in data:
+            await change_branches(data['branches'], user_id)
+
         values = {
             'display_name': data['displayName']
             if 'displayName' in data else None,
@@ -150,7 +162,8 @@ class User(HTTPEndpoint):
 
         values = dict(filter(lambda item: item[1] is not None, values.items()))
 
-        await user.update(**values).apply()
+        if values:
+            await user.update(**values).apply()
 
         return Response('', status_code=204)
 

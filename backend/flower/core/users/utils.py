@@ -1,5 +1,5 @@
-from ..models import RoleModel, UserModel
-
+from ..models import RoleModel, UserModel, UserBranchModel
+from sqlalchemy.dialects.postgresql import insert
 
 class RoleNotExist(ValueError):
     pass
@@ -36,3 +36,27 @@ def get_column_for_order(column_name, asc=True):
     if asc:
         return names_x_columns[column_name]
     return names_x_columns[column_name].desc()
+
+
+async def change_branches(branches, user_id):
+    if len(branches) == 0:
+        await UserBranchModel.delete.where(UserBranchModel.user_id == user_id).gino.status()
+    else:
+        branchesExist = await UserBranchModel.query.where(
+            (UserBranchModel.user_id == user_id) & (UserBranchModel.branch_id in branches)
+        ).gino.all()
+
+        if len(branchesExist) != len(branches):
+            await UserBranchModel.delete.where(
+                ~((UserBranchModel.user_id == user_id) & (UserBranchModel.branch_id in branches))
+            ).gino.status()
+
+            models_ids = [branchesExist.id for model in branchesExist]
+
+            result = []
+
+            for branch in branches:
+                if branch not in models_ids:
+                    result.append({'user_id': user_id, 'branch_id': branch})
+
+            await insert(UserBranchModel).values(result).on_conflict_do_nothing().gino.scalar()
