@@ -1,9 +1,7 @@
-"""empty message
-
+"""added providers
 Revision ID: b1a0d6cd7fa7
 Revises: b3f9310cc0c6
 Create Date: 2020-11-07 16:48:00.478234
-
 """
 from alembic import op
 import sqlalchemy as sa

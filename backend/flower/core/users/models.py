@@ -17,6 +17,7 @@ class UserModel(db.Model):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._role = None
+        self._branches = set()
 
     @property
     def role(self):
@@ -25,6 +26,14 @@ class UserModel(db.Model):
     @role.setter
     def role(self, value):
         self._role = value
+
+    @property
+    def branches(self):
+        return self._branches
+
+    @branches.setter
+    def branches(self, value):
+        self._branches.add(value)
 
     def jsonify(self, for_card=False):
         result = {
@@ -37,6 +46,9 @@ class UserModel(db.Model):
             result['username'] = self.username
             result['email'] = self.email
             result['deactivated'] = self.deactivated
+            result['branches'] = [
+                branch.jsonify() for branch in self._branches
+            ]
 
         result['role'] = self.role.display_name if self.role else ''
 
