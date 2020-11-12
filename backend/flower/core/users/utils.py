@@ -1,5 +1,7 @@
-from ..models import RoleModel, UserModel, UserBranchModel
 from sqlalchemy.dialects.postgresql import insert
+
+from ..database import db
+from ..models import RoleModel, UserModel, UserBranchModel
 
 
 class RoleNotExist(ValueError):
@@ -39,25 +41,32 @@ def get_column_for_order(column_name, asc=True):
     return names_x_columns[column_name].desc()
 
 
-async def change_branches(branches, user_id, isCreate):
+async def change_branches(branches, user_id, is_create=False):
+    branches = list(set(branches))
     if len(branches) == 0:
         await UserBranchModel.delete.where(
             UserBranchModel.user_id == user_id
         ).gino.status()
     else:
-        branchesExist = await UserBranchModel.query.where(
-            (UserBranchModel.user_id == user_id) &
-            (UserBranchModel.branch_id in branches)
+        branches_exist = await UserBranchModel.query.where(
+            (UserBranchModel.user_id == user_id)
+            & (UserBranchModel.branch_id.in_(branches))
         ).gino.all()
 
-        if len(branchesExist) != len(branches):
-            if not isCreate:
+        count = await db.select(
+            [db.func.count(UserBranchModel.branch_id)]
+        ).where(
+            UserBranchModel.user_id == user_id
+        ).gino.scalar()
+
+        if len(branches_exist) != len(branches) or count != len(branches):
+            if not is_create:
                 await UserBranchModel.delete.where(
-                    ((UserBranchModel.user_id == user_id) &
-                     ~(UserBranchModel.branch_id in branches))
+                    (UserBranchModel.user_id == user_id) &
+                    ~ (UserBranchModel.branch_id.in_(branches))
                 ).gino.status()
 
-            models_ids = [branchesExist.id for model in branchesExist]
+            models_ids = [model.branch_id for model in branches_exist]
 
             result = []
 
@@ -65,6 +74,7 @@ async def change_branches(branches, user_id, isCreate):
                 if branch not in models_ids:
                     result.append({'user_id': user_id, 'branch_id': branch})
 
-            await insert(UserBranchModel).values(
-                result
-            ).on_conflict_do_nothing().gino.scalar()
+            if result:
+                await insert(UserBranchModel.__table__).values(
+                    result
+                ).on_conflict_do_nothing().gino.scalar()

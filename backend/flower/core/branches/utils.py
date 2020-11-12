@@ -27,14 +27,3 @@ def get_column_for_order(column_name, asc=True):
     if asc:
         return names_x_columns[column_name]
     return names_x_columns[column_name].desc()
-
-
-async def get_by_address(data):
-    if 'branch' in data:
-        branch = await BranchModel.query.where(
-            (BranchModel.address == data['branch'])
-        ).gino.first()
-        if not branch:
-            raise BranchNotExist
-        return branch.id
-    return None

@@ -17,7 +17,7 @@ class BranchModel(db.Model):
 
     @users.setter
     def users(self, value):
-        self._users = value
+        self._users.add(value)
 
     def jsonify(self, for_card=False):
         result = {

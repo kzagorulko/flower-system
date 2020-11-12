@@ -6,14 +6,15 @@ from starlette.responses import JSONResponse, Response
 from passlib.hash import pbkdf2_sha256 as sha256
 
 from ..database import db
+from ..models import UserModel, RoleModel, UserBranchModel, BranchModel
 from ..utils import (
     with_transaction, create_refresh_token, create_access_token, jwt_required,
-    make_error, Permissions
+    make_error, Permissions,
 )
-from ..models import UserModel, RoleModel, UserBranchModel
+
 from .utils import (
     is_username_unique, get_role_id, RoleNotExist,
-    get_column_for_order, change_branches
+    get_column_for_order, change_branches,
 )
 
 permissions = Permissions(app_name='users')
@@ -24,9 +25,7 @@ class Users(HTTPEndpoint):
     @jwt_required
     @permissions.required(action='get')
     async def get(request):
-        users_query = UserModel.outerjoin(
-            RoleModel
-        ).outerjoin(UserBranchModel).select()
+        users_query = UserModel.outerjoin(RoleModel).select()
         total_query = db.select([db.func.count(UserModel.id)])
 
         query_params = request.query_params
@@ -58,9 +57,7 @@ class Users(HTTPEndpoint):
 
         total = await total_query.gino.scalar()
         users = await users_query.gino.load(
-            UserModel.distinct(UserModel.id).load(
-                role=RoleModel, branch=UserBranchModel
-            )
+            UserModel.distinct(UserModel.id).load(role=RoleModel)
         ).all()
 
         return JSONResponse({
@@ -68,7 +65,6 @@ class Users(HTTPEndpoint):
             'total': total,
         })
 
-    # TODO make this for admin only
     @with_transaction
     @jwt_required
     @permissions.required(action='create')
@@ -105,20 +101,24 @@ class User(HTTPEndpoint):
     @permissions.required(action='get')
     async def get(request):
         user_id = request.path_params['user_id']
-        users = await UserModel.outerjoin(
-            RoleModel
-        ).outerjoin(UserBranchModel).select().where(
-            UserModel.id == user_id
-        ).gino.load(
-            UserModel.distinct(
-                UserModel.id
-            ).load(role=RoleModel, branches=UserBranchModel)
-        ).all()
+        users = (
+            await UserModel
+            .outerjoin(RoleModel)
+            .outerjoin(UserBranchModel)
+            .outerjoin(BranchModel)
+            .select()
+            .where(
+                UserModel.id == user_id
+            )
+            .gino.load(
+                UserModel.distinct(
+                    UserModel.id
+                ).load(role=RoleModel, branches=BranchModel)
+            ).all()
+        )
         if users:
             return JSONResponse(users[0].jsonify(for_card=True))
         return make_error(f'User with id {user_id} not found', status_code=404)
-
-    # TODO: make this method for admin only
 
     @with_transaction
     @jwt_required

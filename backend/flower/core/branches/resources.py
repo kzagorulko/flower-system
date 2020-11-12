@@ -2,12 +2,11 @@ from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
 
+from ..database import db
+from ..models import BranchModel, UserModel, UserBranchModel
 from ..utils import jwt_required, make_error, with_transaction, Permissions
-from ..models import BranchModel, UserModel, UserBranchModel, RoleModel
 
 from .utils import is_address_unique, get_column_for_order
-
-from ..database import db
 
 permissions = Permissions(app_name='branches')
 
@@ -78,25 +77,20 @@ class Branch(HTTPEndpoint):
     @permissions.required(action='get_one')
     async def get(request):
         branch_id = request.path_params['branch_id']
-        users_query = UserModel.outerjoin(UserBranchModel).select()
-        users_query = users_query.where(
-            UserBranchModel.branch_id == branch_id
+        branches_query = (
+            BranchModel
+            .outerjoin(UserBranchModel)
+            .outerjoin(UserModel)
+            .select()
+        )
+        branches_query = branches_query.where(
+            BranchModel.id == branch_id
         )
 
-        users = await users_query.gino.load(
-            UserModel.distinct(UserModel.id).load(
-                role=RoleModel, branch=UserBranchModel
+        branches = await branches_query.gino.load(
+            BranchModel.distinct(BranchModel.id).load(
+                users=UserModel
             )
-        ).all()
-
-        branches = await BranchModel.outerjoin(
-            UserBranchModel
-        ).select().where(
-            BranchModel.id == branch_id
-        ).gino.load(
-            BranchModel.distinct(
-                BranchModel.id
-            ).load(users=users)
         ).all()
 
         if branches:
@@ -116,15 +110,8 @@ class Branch(HTTPEndpoint):
                 f'Branch with id {branch_id} not found', status_code=404
             )
 
-        values = {
-            'address': data['address']
-            if 'address' in data else None,
-        }
-
-        values = dict(filter(lambda item: item[1] is not None, values.items()))
-
-        if values:
-            await branch.update(**values).apply()
+        if 'address' in data:
+            await branch.update(address=data['address']).apply()
 
         return Response('', status_code=204)
 
@@ -136,6 +123,6 @@ async def get_actions(request, user):
 
 routes = [
     Route('/', Branches),
-    Route('/actions', get_actions, methods=['GET']),
     Route('/{branch_id:int}', Branch),
+    Route('/actions', get_actions, methods=['GET']),
 ]

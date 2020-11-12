@@ -16,6 +16,6 @@ routes = [
     Route('/apps', get_apps, methods=['GET']),
     Mount('/users', routes=user_routes),
     Mount('/roles', routes=roles_routes),
-    Mount('/providers', routes=provider_routes),
     Mount('/branches', routes=branch_routes),
+    Mount('/providers', routes=provider_routes),
 ]
