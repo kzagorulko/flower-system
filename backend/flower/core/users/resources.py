@@ -6,13 +6,15 @@ from starlette.responses import JSONResponse, Response
 from passlib.hash import pbkdf2_sha256 as sha256
 
 from ..database import db
+from ..models import UserModel, RoleModel, UserBranchModel, BranchModel
 from ..utils import (
     with_transaction, create_refresh_token, create_access_token, jwt_required,
-    make_error, Permissions
+    make_error, Permissions,
 )
-from ..models import UserModel, RoleModel
+
 from .utils import (
-    is_username_unique, get_role_id, RoleNotExist, get_column_for_order,
+    is_username_unique, get_role_id, RoleNotExist,
+    get_column_for_order, change_branches,
 )
 
 permissions = Permissions(app_name='users')
@@ -28,9 +30,16 @@ class Users(HTTPEndpoint):
 
         query_params = request.query_params
 
-        if 'search' in query_params:
-            users_query.where(
-                UserModel.display_name.ilike(f'%{query_params["search"]}%')
+        if 'display_name' in query_params:
+            users_query = users_query.where(
+                UserModel.display_name.ilike(
+                    f'%{query_params["display_name"]}%'
+                )
+            )
+            total_query = total_query.where(
+                UserModel.display_name.ilike(
+                    f'%{query_params["display_name"]}%'
+                )
             )
 
         if 'page' in query_params and 'perPage' in query_params:
@@ -56,10 +65,9 @@ class Users(HTTPEndpoint):
             'total': total,
         })
 
-    # TODO make this for admin only
     @with_transaction
     @jwt_required
-    @permissions.required(action='create', return_user=True, return_role=True)
+    @permissions.required(action='create')
     async def post(self, request):
         data = await request.json()
         if not await is_username_unique(data['username']):
@@ -81,6 +89,9 @@ class Users(HTTPEndpoint):
             email=data['email'],
             role_id=role_id
         )
+        if data['branches']:
+            await change_branches(data['branches'], new_user.id, True)
+
         return JSONResponse({'id': new_user.id})
 
 
@@ -90,16 +101,24 @@ class User(HTTPEndpoint):
     @permissions.required(action='get')
     async def get(request):
         user_id = request.path_params['user_id']
-        users = await UserModel.outerjoin(RoleModel).select().where(
-            UserModel.id == user_id
-        ).gino.load(
-            UserModel.distinct(UserModel.id).load(role=RoleModel)
-        ).all()
+        users = (
+            await UserModel
+            .outerjoin(RoleModel)
+            .outerjoin(UserBranchModel)
+            .outerjoin(BranchModel)
+            .select()
+            .where(
+                UserModel.id == user_id
+            )
+            .gino.load(
+                UserModel.distinct(
+                    UserModel.id
+                ).load(role=RoleModel, branches=BranchModel)
+            ).all()
+        )
         if users:
             return JSONResponse(users[0].jsonify(for_card=True))
         return make_error(f'User with id {user_id} not found', status_code=404)
-
-    # TODO: make this method for admin only
 
     @with_transaction
     @jwt_required
@@ -116,7 +135,10 @@ class User(HTTPEndpoint):
         try:
             role_id = await get_role_id(data)
         except RoleNotExist:
-            return make_error("Role does't exist", status_code=404)
+            return make_error("Role doesn't exist", status_code=404)
+
+        if 'branches' in data:
+            await change_branches(data['branches'], user_id)
 
         values = {
             'display_name': data['displayName']
@@ -131,7 +153,8 @@ class User(HTTPEndpoint):
 
         values = dict(filter(lambda item: item[1] is not None, values.items()))
 
-        await user.update(**values).apply()
+        if values:
+            await user.update(**values).apply()
 
         return Response('', status_code=204)
 

@@ -1,7 +1,7 @@
 """added request and request categories tables
 
 Revision ID: f7f61b0fadff
-Revises: b3f9310cc0c6
+Revises: 7292deb23125
 Create Date: 2020-11-07 21:34:58.470451
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'f7f61b0fadff'
-down_revision = 'b3f9310cc0c6'
+down_revision = '7292deb23125'
 branch_labels = None
 depends_on = None
 

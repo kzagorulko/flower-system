@@ -172,7 +172,8 @@ class Permissions:
         self.app_name = app_name
 
     def required(
-            self, action, *arguments, return_role=False, return_user=False
+            self, action, additional_actions=(), *arguments,
+            return_role=False, return_user=False, return_actions=False
     ):
         def wrapper(func):
             async def wrapper_view(*args, user, **kwargs):
@@ -183,22 +184,33 @@ class Permissions:
                     return make_error(
                         "User doesn't have a role", status_code=403
                     )
-                permission = await PermissionModel.query.where(
-                    (PermissionModel.app_name == self.app_name)
-                    & (PermissionModel.action == action)
-                    & (PermissionModel.role_id == role.id)
-                ).gino.first()
+                actions_clause = (PermissionModel.action == action)
+                for additional_action in additional_actions:
+                    actions_clause |= (
+                            PermissionModel.action == additional_action
+                    )
 
-                if not permission:
+                permissions = await PermissionModel.query.where(
+                    (PermissionModel.app_name == self.app_name)
+                    & actions_clause
+                    & (PermissionModel.role_id == role.id)
+                ).gino.all()
+
+                if not permissions:
                     return make_error(
                         "Forbidden", status_code=403
                     )
 
-                results = {}
-                if return_user:
-                    results['user'] = user
-                if return_role:
-                    results['role'] = role
+                actions = [permission.action for permission in permissions]
+
+                return_values = {
+                    'actions': (return_actions, actions),
+                    'user': (return_user, user),
+                    'role': (return_role, role),
+                }
+
+                results = self.get_results(return_values)
+
                 return await func(*args, **results, **kwargs)
 
             return wrapper_view
@@ -219,6 +231,15 @@ class Permissions:
         return {
             'actions': [action[0] for action in actions]
         }
+
+    @staticmethod
+    def get_results(return_values):
+        results = {}
+        for key, value in return_values.items():
+            if value[0]:
+                results[key] = value[1]
+
+        return results
 
 
 def convert_to_utc(dt):
