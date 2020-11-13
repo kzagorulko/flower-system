@@ -16,7 +16,7 @@ permissions = Permissions(app_name='products')
 class Products(HTTPEndpoint):
     @with_transaction
     @jwt_required
-    @permissions.required(action='create')
+    @permissions.required(action=permissions.actions.CREATE)
     async def post(self, request):
         data = await request.form()
 
@@ -53,7 +53,7 @@ class Products(HTTPEndpoint):
             )
 
     @jwt_required
-    @permissions.required(action='get')
+    @permissions.required(action=permissions.actions.GET)
     async def get(self, request):
         query_params = request.query_params
 
@@ -89,7 +89,7 @@ class Products(HTTPEndpoint):
 class Product(HTTPEndpoint):
     @with_transaction
     @jwt_required
-    @permissions.required(action='update')
+    @permissions.required(action=permissions.actions.UPDATE)
     async def patch(self, request):
         product_id = request.path_params['product_id']
         data = await request.form()
@@ -134,7 +134,7 @@ class Product(HTTPEndpoint):
             )
 
     @jwt_required
-    @permissions.required(action='get')
+    @permissions.required(action=permissions.actions.GET)
     async def get(self, request):
         product_id = request.path_params['product_id']
 

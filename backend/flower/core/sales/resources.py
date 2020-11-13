@@ -17,7 +17,7 @@ permissions = Permissions(app_name='products')
 class Sales(HTTPEndpoint):
     @with_transaction
     @jwt_required
-    @permissions.required(action='create', return_user=True)
+    @permissions.required(action=permissions.actions.CREATE, return_user=True)
     async def post(self, request, user):
         data = await request.json()
 
@@ -61,7 +61,7 @@ class Sales(HTTPEndpoint):
             )
 
     @jwt_required
-    @permissions.required(action='get')
+    @permissions.required(action=permissions.actions.GET)
     async def get(self, request):
         query_params = request.query_params
 
@@ -124,7 +124,7 @@ class Sales(HTTPEndpoint):
 
 class Sale(HTTPEndpoint):
     @jwt_required
-    @permissions.required(action='get')
+    @permissions.required(action=permissions.actions.GET)
     async def get(self, request):
         sale_id = int(request.path_params['sale_id'])
 

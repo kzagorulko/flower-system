@@ -7,7 +7,9 @@ from starlette.responses import Response, JSONResponse
 
 from .. import config
 from .database import db
-from .models import UserModel, RoleModel, PermissionModel, UserBranchModel
+from .models import (
+    UserModel, RoleModel, PermissionModel, UserBranchModel, PermissionActions
+)
 
 
 def with_transaction(func):
@@ -167,6 +169,8 @@ def make_error(description, status_code=400):
 
 
 class Permissions:
+    actions = PermissionActions
+
     def __init__(self, app_name):
         self.app_name = app_name
 

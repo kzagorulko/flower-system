@@ -14,7 +14,7 @@ permissions = Permissions(app_name='branches')
 class Branches(HTTPEndpoint):
     @staticmethod
     @jwt_required
-    @permissions.required(action='get')
+    @permissions.required(action=permissions.actions.GET)
     async def get(request):
         branches_query = BranchModel.query
         total_query = db.select([db.func.count(BranchModel.id)])
@@ -54,7 +54,7 @@ class Branches(HTTPEndpoint):
 
     @with_transaction
     @jwt_required
-    @permissions.required(action='create')
+    @permissions.required(action=permissions.actions.CREATE)
     async def post(self, request):
         data = await request.json()
         if not await is_address_unique(data['address']):
@@ -74,7 +74,7 @@ class Branch(HTTPEndpoint):
 
     @staticmethod
     @jwt_required
-    @permissions.required(action='get_one')
+    @permissions.required(action=permissions.actions.GET_ONE)
     async def get(request):
         branch_id = request.path_params['branch_id']
         branches_query = (
@@ -99,7 +99,7 @@ class Branch(HTTPEndpoint):
 
     @with_transaction
     @jwt_required
-    @permissions.required(action='update')
+    @permissions.required(action=permissions.actions.UPDATE)
     async def patch(self, request):
         data = await request.json()
         branch_id = request.path_params['branch_id']

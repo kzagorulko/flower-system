@@ -19,7 +19,7 @@ permissions = Permissions(app_name='providers')
 class Providers(HTTPEndpoint):
     @staticmethod
     @jwt_required
-    @permissions.required(action='get')
+    @permissions.required(action=permissions.actions.GET)
     async def get(request):
         providers_query = ProviderModel.query
         total_query = db.select([db.func.count(ProviderModel.id)])
@@ -59,7 +59,7 @@ class Providers(HTTPEndpoint):
 
     @with_transaction
     @jwt_required
-    @permissions.required(action='create')
+    @permissions.required(action=permissions.actions.CREATE)
     async def post(self, request):
         data = await request.json()
         if not await is_name_unique(data['name']):
@@ -82,7 +82,7 @@ class Providers(HTTPEndpoint):
 class Provider(HTTPEndpoint):
     @staticmethod
     @jwt_required
-    @permissions.required(action='get')
+    @permissions.required(action=permissions.actions.GET)
     async def get(request):
         provider_id = request.path_params['provider_id']
         provider = await ProviderModel.get(provider_id)
@@ -93,8 +93,8 @@ class Provider(HTTPEndpoint):
     @with_transaction
     @jwt_required
     @permissions.required(
-        action='update',
-        additional_actions=['update_status'],
+        action=permissions.actions.UPDATE,
+        additional_actions=[permissions.actions.UPDATE_STATUS],
         return_actions=True
     )
     async def patch(self, request, actions):

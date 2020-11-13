@@ -23,7 +23,7 @@ permissions = Permissions(app_name='users')
 class Users(HTTPEndpoint):
     @staticmethod
     @jwt_required
-    @permissions.required(action='get')
+    @permissions.required(action=permissions.actions.GET)
     async def get(request):
         users_query = UserModel.outerjoin(RoleModel).select()
         total_query = db.select([db.func.count(UserModel.id)])
@@ -67,7 +67,7 @@ class Users(HTTPEndpoint):
 
     @with_transaction
     @jwt_required
-    @permissions.required(action='create')
+    @permissions.required(action=permissions.actions.CREATE)
     async def post(self, request):
         data = await request.json()
         if not await is_username_unique(data['username']):
@@ -98,7 +98,7 @@ class Users(HTTPEndpoint):
 class User(HTTPEndpoint):
     @staticmethod
     @jwt_required
-    @permissions.required(action='get')
+    @permissions.required(action=permissions.actions.GET)
     async def get(request):
         user_id = request.path_params['user_id']
         users = (
@@ -122,7 +122,7 @@ class User(HTTPEndpoint):
 
     @with_transaction
     @jwt_required
-    @permissions.required(action='update')
+    @permissions.required(action=permissions.actions.UPDATE)
     async def patch(self, request):
         data = await request.json()
         user_id = request.path_params['user_id']
