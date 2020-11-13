@@ -7,7 +7,7 @@ from starlette.responses import Response, JSONResponse
 
 from .. import config
 from .database import db
-from .models import UserModel, RoleModel, PermissionModel
+from .models import UserModel, RoleModel, PermissionModel, UserBranchModel
 
 
 def with_transaction(func):
@@ -239,3 +239,44 @@ class Permissions:
                 results[key] = value[1]
 
         return results
+
+
+class GinoQueryHelper:
+    @staticmethod
+    def get_query_with_pagination(query_params, current_query):
+        if 'page' in query_params and 'perPage' in query_params:
+            page = int(query_params['page']) - 1
+            per_page = int(query_params['perPage'])
+            return current_query.limit(per_page).offset(page * per_page)
+        return current_query
+
+    """
+    columns_map = {
+       "column_name": Model.column,
+    }
+    """
+    @staticmethod
+    def get_query_with_order(query_params, current_query, columns_map):
+        def _get_column(column_name, asc=True):
+            if asc:
+                return columns_map[column_name]
+            return columns_map[column_name].desc()
+
+        if 'order' in query_params and 'field' in query_params:
+            return current_query.order_by(
+                _get_column(
+                    query_params['field'],
+                    query_params['order'] == 'ASC'
+                )
+            )
+
+        return current_query
+
+
+async def is_user_in_branch(user, branch):
+    user_branch = await UserBranchModel.query.where(
+        (UserBranchModel.branch_id == branch.id) &
+        (UserBranchModel.user_id == user.id)
+    )
+
+    return bool(user_branch)
