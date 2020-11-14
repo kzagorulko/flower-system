@@ -50,18 +50,18 @@ export const ProductCreate = (props) => (
 );
 
 export const ProductEdit = (props) => {
-  const { loaded, permissions } = usePermissions('/products');
+  const { loaded } = usePermissions('/products');
 
   return loaded ? (
     <Edit undoable={false} {...props}>
       <SimpleForm>
         <TextInput disabled source="id" />
-        <ImageInput disabled={!permissions.actions.includes('update')} source="image" title="image">
+        <ImageInput source="image" title="image">
           <ImageField source="image_path" title="image" />
         </ImageInput>
-        <TextInput disabled={!permissions.actions.includes('update')} source="name" />
-        <TextInput disabled={!permissions.actions.includes('update')} source="price" />
-        <TextInput disabled={!permissions.actions.includes('update')} source="description" multiline />
+        <TextInput source="name" />
+        <TextInput source="price" />
+        <TextInput source="description" multiline />
       </SimpleForm>
     </Edit>
   ) : null;
