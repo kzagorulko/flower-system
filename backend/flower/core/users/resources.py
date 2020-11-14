@@ -87,7 +87,7 @@ class Users(HTTPEndpoint):
             email=data['email'],
             role_id=role_id
         )
-        if data['branches']:
+        if 'branches' in data:
             await change_branches(data['branches'], new_user.id, True)
 
         return JSONResponse({'id': new_user.id})

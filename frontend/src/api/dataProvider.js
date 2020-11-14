@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import {
   request,
+  prepareImage,
 } from './utils';
 
 const flatParams = (params) => {
@@ -39,23 +40,26 @@ export default {
 
   getManyReference: () => {},
 
-  create: (resource, params) => request('POST', `/${resource}/`, params.data)
-    .then((resp) => {
-      const { data } = resp;
-      return {
-        data,
-      };
-    }),
+  create: (resource, params) => prepareImage(params)
+    .then((preparedParams) => request('POST', `/${resource}/`, preparedParams.data)
+      .then((resp) => {
+        const { data } = resp;
+        return {
+          data,
+        };
+      })),
 
-  update: (resource, params) => request('PATCH', `/${resource}/${params.id}`, params.data)
-    .then(() => {
-      const data = {
-        id: params.id,
-      };
-      return {
-        data,
-      };
-    }),
+  // TODO: fix
+  update: (resource, params) => prepareImage(params)
+    .then((preparedParams) => request('PATCH', `/${resource}/${preparedParams.id}`, preparedParams.data)
+      .then(() => {
+        const data = {
+          id: preparedParams.id,
+        };
+        return {
+          data,
+        };
+      })),
 
   updateMany: () => {},
 

@@ -18,7 +18,7 @@ class Products(HTTPEndpoint):
     @jwt_required
     @permissions.required(action=permissions.actions.CREATE)
     async def post(self, request):
-        data = await request.form()
+        data = await request.json()
 
         try:
             if 'image' not in data:
@@ -30,12 +30,12 @@ class Products(HTTPEndpoint):
             if 'description' not in data:
                 raise Exception('Parameter "description" required')
 
-            image_file = data['image']
+            image_file_base64 = data['image']
             name = data['name']
             price = float(data['price'])
             description = data['description']
 
-            image_path = await MediaUtils.save_file(image_file)
+            image_path = await MediaUtils.save_file_base64(image_file_base64)
 
             product = await ProductModel.create(
                 name=name,
@@ -92,7 +92,7 @@ class Product(HTTPEndpoint):
     @permissions.required(action=permissions.actions.UPDATE)
     async def patch(self, request):
         product_id = request.path_params['product_id']
-        data = await request.form()
+        data = await request.json()
 
         try:
             product = await ProductModel.get(product_id)
@@ -106,8 +106,11 @@ class Product(HTTPEndpoint):
             description = product.description
 
             if 'image' in data:
-                image_file = data['image']
-                new_image_path = await MediaUtils.save_file(image_file)
+                image_file_base64 = data['image']
+                new_image_path = await MediaUtils.save_file_base64(
+                    image_file_base64
+                )
+
                 MediaUtils.del_file(image_path)
                 image_path = new_image_path
 

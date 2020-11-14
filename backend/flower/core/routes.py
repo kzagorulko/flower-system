@@ -1,5 +1,6 @@
 from starlette.routing import Route, Mount
 from starlette.responses import JSONResponse
+from starlette.staticfiles import StaticFiles
 
 from .users.resources import routes as user_routes
 from .roles.resources import routes as roles_routes
@@ -14,6 +15,7 @@ async def ping(request):
     return JSONResponse({'onPing': 'wePong'})
 
 routes = [
+    Mount('/media/', app=StaticFiles(directory='media'), name="media"),
     Route('/ping', ping),
     Route('/apps', get_apps, methods=['GET']),
     Mount('/users', routes=user_routes),
