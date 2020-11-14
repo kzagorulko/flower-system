@@ -49,23 +49,19 @@ export const ProductCreate = (props) => (
   </Create>
 );
 
-export const ProductEdit = (props) => {
-  const { loaded } = usePermissions('/products');
-
-  return loaded ? (
-    <Edit undoable={false} {...props}>
-      <SimpleForm>
-        <TextInput disabled source="id" />
-        <ImageInput source="image" title="image">
-          <ImageField source="image_path" title="image" />
-        </ImageInput>
-        <TextInput source="name" />
-        <TextInput source="price" />
-        <TextInput source="description" multiline />
-      </SimpleForm>
-    </Edit>
-  ) : null;
-};
+export const ProductEdit = (props) => (
+  <Edit undoable={false} {...props}>
+    <SimpleForm>
+      <TextInput disabled source="id" />
+      <ImageInput source="image" title="image">
+        <ImageField source="image_path" title="image" />
+      </ImageInput>
+      <TextInput source="name" />
+      <TextInput source="price" />
+      <TextInput source="description" multiline />
+    </SimpleForm>
+  </Edit>
+);
 
 export const ProductList = (props) => (
   <List {...props} actions={<ProductListActions />} filters={<ProductFilter />}>
