@@ -9,12 +9,11 @@ from ..database import db
 from ..models import UserModel, RoleModel, UserBranchModel, BranchModel
 from ..utils import (
     with_transaction, create_refresh_token, create_access_token, jwt_required,
-    make_error, Permissions,
+    make_error, Permissions, GinoQueryHelper,
 )
 
 from .utils import (
-    is_username_unique, get_role_id, RoleNotExist,
-    get_column_for_order, change_branches,
+    is_username_unique, get_role_id, RoleNotExist, change_branches
 )
 
 permissions = Permissions(app_name='users')
@@ -42,18 +41,17 @@ class Users(HTTPEndpoint):
                 )
             )
 
-        if 'page' in query_params and 'perPage' in query_params:
-            page = int(query_params['page']) - 1
-            per_page = int(query_params['perPage'])
-            users_query = users_query.limit(per_page).offset(page * per_page)
-
-        if 'order' in query_params and 'field' in query_params:
-            users_query = users_query.order_by(
-                get_column_for_order(
-                    query_params['field'],
-                    query_params['order'] == 'ASC'
-                )
-            )
+        users_query = GinoQueryHelper.pagination(
+            query_params, users_query
+        )
+        users_query = GinoQueryHelper.order(
+            query_params,
+            users_query, {
+                'id': UserModel.id,
+                'displayName': UserModel.display_name,
+                'role': RoleModel.display_name,
+            }
+        )
 
         total = await total_query.gino.scalar()
         users = await users_query.gino.load(

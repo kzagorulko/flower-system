@@ -29,18 +29,6 @@ async def get_role_id(data):
     return None
 
 
-def get_column_for_order(column_name, asc=True):
-    names_x_columns = {
-        'id': UserModel.id,
-        'displayName': UserModel.display_name,
-        'role': RoleModel.display_name,
-    }
-
-    if asc:
-        return names_x_columns[column_name]
-    return names_x_columns[column_name].desc()
-
-
 async def change_branches(branches, user_id, is_create=False):
     branches = list(set(branches))
     if len(branches) == 0:

@@ -16,14 +16,3 @@ async def is_address_unique(address):
     if branch:
         return False
     return True
-
-
-def get_column_for_order(column_name, asc=True):
-    names_x_columns = {
-        'id': BranchModel.id,
-        'address': BranchModel.name,
-    }
-
-    if asc:
-        return names_x_columns[column_name]
-    return names_x_columns[column_name].desc()

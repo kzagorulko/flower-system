@@ -7,10 +7,10 @@ from ..database import db
 from ..models import ProviderModel
 from .models import ProviderStatusTypes
 from ..utils import (
-    make_error, with_transaction, jwt_required, Permissions
+    make_error, with_transaction, jwt_required, Permissions, GinoQueryHelper
 )
 from .utils import (
-    is_name_unique, get_column_for_order,
+    is_name_unique,
 )
 
 permissions = Permissions(app_name='providers')
@@ -34,20 +34,17 @@ class Providers(HTTPEndpoint):
                 ProviderModel.name.ilike(f'%{query_params["name"]}%')
             )
 
-        if 'page' in query_params and 'perPage' in query_params:
-            page = int(query_params['page']) - 1
-            per_page = int(query_params['perPage'])
-            providers_query = providers_query.limit(
-                                        per_page
-                                    ).offset(page * per_page)
-
-        if 'order' in query_params and 'field' in query_params:
-            providers_query = providers_query.order_by(
-                get_column_for_order(
-                    query_params['field'],
-                    query_params['order'] == 'ASC'
-                )
-            )
+        providers_query = GinoQueryHelper.pagination(
+            query_params, providers_query
+        )
+        providers_query = GinoQueryHelper.order(
+            query_params,
+            providers_query, {
+                'id': ProviderModel.id,
+                'name': ProviderModel.name,
+                'status': ProviderModel.status,
+            }
+        )
 
         total = await total_query.gino.scalar()
         providers = await providers_query.gino.all()

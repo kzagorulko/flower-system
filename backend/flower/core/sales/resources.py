@@ -81,7 +81,7 @@ class Sales(HTTPEndpoint):
                 (SalesModel.date_month == float(query_params['month'])) &
                 (SalesModel.date_year == float(query_params['year'])))
 
-        current_query = GinoQueryHelper.get_query_with_pagination(
+        current_query = GinoQueryHelper.pagination(
             query_params, current_query
         )
 

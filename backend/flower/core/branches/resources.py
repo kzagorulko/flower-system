@@ -4,9 +4,10 @@ from starlette.endpoints import HTTPEndpoint
 
 from ..database import db
 from ..models import BranchModel, UserModel, UserBranchModel
-from ..utils import jwt_required, make_error, with_transaction, Permissions
-
-from .utils import is_address_unique, get_column_for_order
+from ..utils import (
+    jwt_required, make_error, with_transaction, Permissions, GinoQueryHelper
+)
+from .utils import is_address_unique
 
 permissions = Permissions(app_name='branches')
 
@@ -29,20 +30,16 @@ class Branches(HTTPEndpoint):
                 BranchModel.address.ilike(f'%{query_params["address"]}%')
             )
 
-        if 'page' in query_params and 'perPage' in query_params:
-            page = int(query_params['page']) - 1
-            per_page = int(query_params['perPage'])
-            branches_query.limit(
-                per_page
-            ).offset(page * per_page)
-
-        if 'order' in query_params and 'field' in query_params:
-            branches_query = branches_query.order_by(
-                get_column_for_order(
-                    query_params['field'],
-                    query_params['order'] == 'ASC'
-                )
-            )
+        branches_query = GinoQueryHelper.pagination(
+            query_params, branches_query
+        )
+        branches_query = GinoQueryHelper.order(
+            query_params,
+            branches_query, {
+                'id': BranchModel.id,
+                'address': BranchModel.name,
+            }
+        )
 
         total = await total_query.gino.scalar()
         branches = await branches_query.gino.all()

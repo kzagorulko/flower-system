@@ -247,7 +247,7 @@ class Permissions:
 
 class GinoQueryHelper:
     @staticmethod
-    def get_query_with_pagination(query_params, current_query):
+    def pagination(query_params, current_query):
         if 'page' in query_params and 'perPage' in query_params:
             page = int(query_params['page']) - 1
             per_page = int(query_params['perPage'])
@@ -260,7 +260,7 @@ class GinoQueryHelper:
     }
     """
     @staticmethod
-    def get_query_with_order(query_params, current_query, columns_map):
+    def order(query_params, current_query, columns_map):
         def _get_column(column_name, asc=True):
             if asc:
                 return columns_map[column_name]
