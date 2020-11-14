@@ -277,10 +277,21 @@ class GinoQueryHelper:
         return current_query
 
 
-async def is_user_in_branch(user, branch):
+async def is_user_in_branch(user, branch) -> bool:
     user_branch = await UserBranchModel.query.where(
         (UserBranchModel.branch_id == branch.id) &
         (UserBranchModel.user_id == user.id)
     )
 
     return bool(user_branch)
+
+
+async def is_user_role_in(user, role_names) -> bool:
+    roles = await RoleModel.query.where(
+        RoleModel.name.in_(role_names)
+    ).gino.all()
+
+    for role in roles:
+        if user.role_id == role.id:
+            return True
+    return False

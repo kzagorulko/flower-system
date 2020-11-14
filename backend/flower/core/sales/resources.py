@@ -6,7 +6,7 @@ from datetime import datetime
 
 from ..utils import (
     with_transaction, jwt_required,
-    make_error, Permissions, GinoQueryHelper
+    make_error, Permissions, GinoQueryHelper, is_user_role_in
 )
 from ..utils import is_user_in_branch
 from ..models import SalesModel, ProductModel, BranchModel
@@ -41,8 +41,12 @@ class Sales(HTTPEndpoint):
             elif not branch:
                 raise Exception('Branch not found')
 
-            if (user.role_id not in (1, 2) and
-                    not is_user_in_branch(user, branch)):
+            if (
+                not await is_user_role_in(
+                    user, ['admin', 'sales_department']
+                ) and
+                not await is_user_in_branch(user, branch)
+            ):
                 raise Exception('User not in branch')
 
             sale = await SalesModel.create(
