@@ -7,8 +7,8 @@ from ..utils import (
     with_transaction, jwt_required,
     make_error, Permissions, GinoQueryHelper
 )
+from ..mediautils import MediaUtils
 from ..models import ProductModel
-from .utils import MediaUtils
 
 permissions = Permissions(app_name='products')
 
@@ -60,9 +60,9 @@ class Products(HTTPEndpoint):
         current_query = ProductModel.query
         total_query = db.select([db.func.count(ProductModel.id)])
 
-        if 'search' in query_params:
+        if 'name' in query_params:
             current_query.where(
-                ProductModel.name.ilike(f'%{query_params["search"]}%')
+                ProductModel.name.ilike(f'%{query_params["name"]}%')
             )
 
         current_query = GinoQueryHelper.pagination(

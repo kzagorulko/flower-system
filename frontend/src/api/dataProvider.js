@@ -49,7 +49,6 @@ export default {
         };
       })),
 
-  // TODO: fix
   update: (resource, params) => prepareImage(params)
     .then((preparedParams) => request('PATCH', `/${resource}/${preparedParams.id}`, preparedParams.data)
       .then(() => {

@@ -2,7 +2,7 @@ import os
 import base64
 
 from uuid import uuid4
-from ...config import MEDIA_FOLDER
+from .. import config
 
 
 class MediaUtils:
@@ -19,12 +19,12 @@ class MediaUtils:
             os.remove(_path)
 
         MediaUtils.create_folder_if_not_exist(
-            os.path.join(MEDIA_FOLDER, path)
+            os.path.join(config.MEDIA_FOLDER, path)
         )
 
         path = os.path.join(path, file_name[2:])
 
-        with open(os.path.join(MEDIA_FOLDER, path), 'wb') as fh:
+        with open(os.path.join(config.MEDIA_FOLDER, path), 'wb') as fh:
             fh.write(await ext_file.read())
 
         return path
@@ -41,12 +41,12 @@ class MediaUtils:
             os.remove(_path)
 
         MediaUtils.create_folder_if_not_exist(
-            os.path.join(MEDIA_FOLDER, path)
+            os.path.join(config.MEDIA_FOLDER, path)
         )
 
         path = os.path.join(path, file_name[2:])
-        print(base64.b64decode(base64_data))
-        with open(os.path.join(MEDIA_FOLDER, path), 'wb') as fh:
+
+        with open(os.path.join(config.MEDIA_FOLDER, path), 'wb') as fh:
             fh.write(base64.b64decode(base64_data))
 
         return path
@@ -77,4 +77,4 @@ class MediaUtils:
     @staticmethod
     def generate_full_path(path):
         # PS: normpath на Windows преобразует обычные слеши в обратные
-        return os.path.normpath(os.path.join(MEDIA_FOLDER, path))
+        return os.path.normpath(os.path.join(config.MEDIA_FOLDER, path))

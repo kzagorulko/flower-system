@@ -1,5 +1,6 @@
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import extract
+from sqlalchemy import tuple_
 
 from ..database import db
 
@@ -43,7 +44,7 @@ class SalesModel(db.Model):
 
     @date_month_year.expression
     def date_month_year(self):
-        return self.date_month + "." + self.date_year
+        return tuple_(self.date_year, self.date_month)
 
     # свойства для подгрузки продукта и филиала
     @property

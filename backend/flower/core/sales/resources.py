@@ -4,6 +4,7 @@ from starlette.responses import JSONResponse
 
 from datetime import datetime
 
+from ..database import db
 from ..utils import (
     with_transaction, jwt_required,
     make_error, Permissions, GinoQueryHelper, is_user_role_in
@@ -11,7 +12,7 @@ from ..utils import (
 from ..utils import is_user_in_branch
 from ..models import SalesModel, ProductModel, BranchModel
 
-permissions = Permissions(app_name='products')
+permissions = Permissions(app_name='sales')
 
 
 class Sales(HTTPEndpoint):
@@ -43,7 +44,7 @@ class Sales(HTTPEndpoint):
 
             if (
                 not await is_user_role_in(
-                    user, ['admin', 'sales_department']
+                    user, ['admin']
                 ) and
                 not await is_user_in_branch(user, branch)
             ):
@@ -71,17 +72,28 @@ class Sales(HTTPEndpoint):
 
         current_query = SalesModel.query
 
+        total_query = db.select([db.func.count(db.func.distinct(SalesModel.date_month_year))])
+
         # filtering
         if 'product_id' in query_params:
             current_query = current_query.where(
+                SalesModel.product_id == int(query_params['product_id'])
+            )
+            total_query = total_query.where(
                 SalesModel.product_id == int(query_params['product_id'])
             )
         if 'branch_id' in query_params:
             current_query = current_query.where(
                 SalesModel.branch_id == int(query_params['branch_id'])
             )
+            total_query = total_query.where(
+                SalesModel.branch_id == int(query_params['branch_id'])
+            )
         if 'year' in query_params and 'month' in query_params:
             current_query = current_query.where(
+                (SalesModel.date_month == float(query_params['month'])) &
+                (SalesModel.date_year == float(query_params['year'])))
+            total_query = total_query.where(
                 (SalesModel.date_month == float(query_params['month'])) &
                 (SalesModel.date_year == float(query_params['year'])))
 
@@ -121,8 +133,11 @@ class Sales(HTTPEndpoint):
                 "sales": current_date_group['items'],
             })
 
+        total = await total_query.gino.scalar()
+
         return JSONResponse({
-            'items': result
+            'items': result,
+            'total': total,
         })
 
 
@@ -130,7 +145,7 @@ class Sale(HTTPEndpoint):
     @jwt_required
     @permissions.required(action=permissions.actions.GET)
     async def get(self, request):
-        sale_id = int(request.path_params['sale_id'])
+        sale_id = request.path_params['sale_id']
 
         sale = (
             await SalesModel
