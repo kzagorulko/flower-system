@@ -72,7 +72,9 @@ class Sales(HTTPEndpoint):
 
         current_query = SalesModel.query
 
-        total_query = db.select([db.func.count(db.func.distinct(SalesModel.date_month_year))])
+        total_query = db.select(
+            [db.func.count(db.func.distinct(SalesModel.date_month_year))]
+        )
 
         # filtering
         if 'product_id' in query_params:
