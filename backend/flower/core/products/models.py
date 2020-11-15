@@ -1,6 +1,6 @@
 from ...config import SERVER_HOSTNAME
 from ..database import db
-from ..mediautils import MediaUtils
+from ..media_utils import MediaUtils
 
 
 class ProductModel(db.Model):

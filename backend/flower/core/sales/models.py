@@ -16,10 +16,12 @@ class SalesModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     value = db.Column(db.Float, nullable=False)
     date = db.Column(db.DateTime, nullable=False)
-    product_id = db.Column(db.Integer,
-                           db.ForeignKey('products.id'), nullable=True)
-    branch_id = db.Column(db.Integer,
-                          db.ForeignKey('branches.id'), nullable=True)
+    product_id = db.Column(
+        db.Integer, db.ForeignKey('products.id'), nullable=True
+    )
+    branch_id = db.Column(
+        db.Integer, db.ForeignKey('branches.id'), nullable=True
+    )
 
     # гибридные свойства для даты
     @hybrid_property
@@ -73,7 +75,7 @@ class SalesModel(db.Model):
         }
 
         if for_card:
-            result['product'] = self._product.jsonify()
-            result['branch'] = self._branch.jsonify()
+            result['product'] = self.product.jsonify()
+            result['branch'] = self.branch.jsonify()
 
         return result

@@ -7,7 +7,7 @@ from ..utils import (
     with_transaction, jwt_required,
     make_error, Permissions, GinoQueryHelper
 )
-from ..mediautils import MediaUtils
+from ..media_utils import MediaUtils
 from ..models import ProductModel
 
 permissions = Permissions(app_name='products')
@@ -111,7 +111,7 @@ class Product(HTTPEndpoint):
                     image_file_base64
                 )
 
-                MediaUtils.del_file(image_path)
+                MediaUtils.delete_file(image_path)
                 image_path = new_image_path
 
             if 'name' in data:

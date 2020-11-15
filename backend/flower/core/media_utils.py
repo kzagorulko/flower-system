@@ -6,39 +6,14 @@ from .. import config
 
 
 class MediaUtils:
-    """
-    Uses starlette 'UploadFile'
-    """
     @staticmethod
-    async def save_file(ext_file, _path=None):
-        f_type, ext = ext_file.content_type.split('/')
-        file_name = MediaUtils.create_filename(ext)
-
-        path = file_name[:2]
-        if _path is not None:
-            os.remove(_path)
-
-        MediaUtils.create_folder_if_not_exist(
-            os.path.join(config.MEDIA_FOLDER, path)
-        )
-
-        path = os.path.join(path, file_name[2:])
-
-        with open(os.path.join(config.MEDIA_FOLDER, path), 'wb') as fh:
-            fh.write(await ext_file.read())
-
-        return path
-
-    @staticmethod
-    async def save_file_base64(ext_file, _path=None):
+    async def save_file_base64(ext_file):
         service_data, base64_data = ext_file.split(',')
         ext = service_data.split(';')[0][5:].split('/')[1]
 
         file_name = MediaUtils.create_filename(ext)
 
         path = file_name[:2]
-        if _path is not None:
-            os.remove(_path)
 
         MediaUtils.create_folder_if_not_exist(
             os.path.join(config.MEDIA_FOLDER, path)
@@ -61,7 +36,7 @@ class MediaUtils:
         return str(uuid4()) + '.' + ext
 
     @staticmethod
-    def del_file(path):
+    def delete_file(path):
         full_path = MediaUtils.generate_full_path(path)
 
         try:
