@@ -4,7 +4,7 @@ from .requests.models import RequestModel
 from .providers.models import ProviderModel
 from .permissions.models import PermissionModel
 from .branches.models import BranchModel, UserBranchModel
-from .request_categories.models import RequestCategoryModel
+from .requests.models import RequestCategoryModel
 
 __all__ = [
     'UserModel',
