@@ -97,6 +97,17 @@ class Sales(HTTPEndpoint):
             query_params, current_query
         )
 
+        current_query = GinoQueryHelper.order(
+            {
+                'field': 'date_month_year',
+                'order': 'DESC',
+            },
+            current_query,
+            {
+                'date_month_year': SalesModel.date_month_year
+            }
+        )
+
         sales = await current_query.gino.all()
 
         result = []
