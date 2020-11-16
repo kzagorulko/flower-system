@@ -9,12 +9,11 @@ from ..database import db
 from ..models import UserModel, RoleModel, UserBranchModel, BranchModel
 from ..utils import (
     with_transaction, create_refresh_token, create_access_token, jwt_required,
-    make_error, Permissions,
+    make_error, Permissions, GinoQueryHelper,
 )
 
 from .utils import (
-    is_username_unique, get_role_id, RoleNotExist,
-    get_column_for_order, change_branches,
+    is_username_unique, get_role_id, RoleNotExist, change_branches
 )
 
 permissions = Permissions(app_name='users')
@@ -23,7 +22,7 @@ permissions = Permissions(app_name='users')
 class Users(HTTPEndpoint):
     @staticmethod
     @jwt_required
-    @permissions.required(action='get')
+    @permissions.required(action=permissions.actions.GET)
     async def get(request):
         users_query = UserModel.outerjoin(RoleModel).select()
         total_query = db.select([db.func.count(UserModel.id)])
@@ -42,18 +41,17 @@ class Users(HTTPEndpoint):
                 )
             )
 
-        if 'page' in query_params and 'perPage' in query_params:
-            page = int(query_params['page']) - 1
-            per_page = int(query_params['perPage'])
-            users_query = users_query.limit(per_page).offset(page * per_page)
-
-        if 'order' in query_params and 'field' in query_params:
-            users_query = users_query.order_by(
-                get_column_for_order(
-                    query_params['field'],
-                    query_params['order'] == 'ASC'
-                )
-            )
+        users_query = GinoQueryHelper.pagination(
+            query_params, users_query
+        )
+        users_query = GinoQueryHelper.order(
+            query_params,
+            users_query, {
+                'id': UserModel.id,
+                'displayName': UserModel.display_name,
+                'role': RoleModel.display_name,
+            }
+        )
 
         total = await total_query.gino.scalar()
         users = await users_query.gino.load(
@@ -67,7 +65,7 @@ class Users(HTTPEndpoint):
 
     @with_transaction
     @jwt_required
-    @permissions.required(action='create')
+    @permissions.required(action=permissions.actions.CREATE)
     async def post(self, request):
         data = await request.json()
         if not await is_username_unique(data['username']):
@@ -89,7 +87,7 @@ class Users(HTTPEndpoint):
             email=data['email'],
             role_id=role_id
         )
-        if data['branches']:
+        if 'branches' in data:
             await change_branches(data['branches'], new_user.id, True)
 
         return JSONResponse({'id': new_user.id})
@@ -98,7 +96,7 @@ class Users(HTTPEndpoint):
 class User(HTTPEndpoint):
     @staticmethod
     @jwt_required
-    @permissions.required(action='get')
+    @permissions.required(action=permissions.actions.GET)
     async def get(request):
         user_id = request.path_params['user_id']
         users = (
@@ -122,7 +120,7 @@ class User(HTTPEndpoint):
 
     @with_transaction
     @jwt_required
-    @permissions.required(action='update')
+    @permissions.required(action=permissions.actions.UPDATE)
     async def patch(self, request):
         data = await request.json()
         user_id = request.path_params['user_id']
