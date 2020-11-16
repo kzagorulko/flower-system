@@ -3,6 +3,7 @@ from sqlalchemy import extract
 from sqlalchemy import tuple_
 
 from ..database import db
+from ..unit_utils import convert_to_utc
 
 
 class SalesModel(db.Model):
@@ -15,7 +16,7 @@ class SalesModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     value = db.Column(db.Float, nullable=False)
-    date = db.Column(db.DateTime, nullable=False)
+    date = db.Column(db.DateTime(timezone=True), nullable=False)
     product_id = db.Column(
         db.Integer, db.ForeignKey('products.id'), nullable=True
     )
@@ -69,13 +70,14 @@ class SalesModel(db.Model):
         result = {
             'id': self.id,
             'value': self.value,
-            'date': self.date.strftime("%Y.%m.%d %H:%M:%S"),
-            'product_id': self.product_id,
-            'branch_id': self.branch_id,
+            'date': convert_to_utc(self.date).isoformat(),
         }
 
         if for_card:
             result['product'] = self.product.jsonify()
             result['branch'] = self.branch.jsonify()
+        else:
+            result['product_id'] = self.product_id
+            result['branch_id'] = self.branch_id
 
         return result

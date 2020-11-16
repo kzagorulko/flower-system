@@ -36,3 +36,4 @@ typing-extensions==3.7.4.3
 uvicorn==0.12.2
 zipp==3.3.2
 aiofiles==0.6.0
+pytz==2020.4

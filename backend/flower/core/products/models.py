@@ -1,6 +1,6 @@
 from ...config import SERVER_HOSTNAME
 from ..database import db
-from ..media_utils import MediaUtils
+from ..unit_utils import MediaUtils
 
 
 class ProductModel(db.Model):
@@ -17,7 +17,9 @@ class ProductModel(db.Model):
             'id': self.id,
             'name': self.name,
             'price': self.price,
-            'image_path': (SERVER_HOSTNAME
-                           + MediaUtils.generate_full_path(self.image_path)),
+            'image_path': (
+                    SERVER_HOSTNAME +
+                    MediaUtils.generate_full_path(self.image_path)
+            ),
             'description': self.description,
         }

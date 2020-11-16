@@ -1,18 +1,19 @@
-""" Products & Sales
+"""empty message
 
-Revision ID: 2c5aac614e6f
+Revision ID: 14af6017bb46
 Revises: 7292deb23125
-Create Date: 2020-11-13 23:11:13.151377
+Create Date: 2020-11-16 14:58:23.526641
 
 """
-from datetime import datetime
-
 from alembic import op
 import sqlalchemy as sa
 
+from pytz import utc
+from datetime import datetime
+
 
 # revision identifiers, used by Alembic.
-revision = '2c5aac614e6f'
+revision = '14af6017bb46'
 down_revision = '7292deb23125'
 branch_labels = None
 depends_on = None
@@ -33,7 +34,7 @@ def upgrade():
     t_sales = op.create_table('sales',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('value', sa.Float(), nullable=False),
-    sa.Column('date', sa.DateTime(), nullable=False),
+    sa.Column('date', sa.DateTime(timezone=True), nullable=False),
     sa.Column('product_id', sa.Integer(), nullable=True),
     sa.Column('branch_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['branch_id'], ['branches.id'], ),
@@ -46,10 +47,10 @@ def upgrade():
 
     connection.execute(
         sa.insert(t_products).values([
-            {'name': 'Красная роза', 'price': 50.7, 'description': 'Красивая очень', 'image_path': 'none1'},
-            {'name': 'Лилия', 'price': 25, 'description': 'Бери, не пожалеешь', 'image_path': 'none2'},
+            {'name': 'Красная роза', 'price': 50.7, 'description': 'Красивая очень', 'image_path': 'test/1.jpg'},
+            {'name': 'Лилия', 'price': 25, 'description': 'Бери, не пожалеешь', 'image_path': 'test/2.jpg'},
             {'name': 'Ромашка', 'price': 5, 'description': 'Одно из наиболее известных лекарственных растений',
-             'image_path': 'none3'},
+             'image_path': 'test/3.jpg'},
         ])
     )
 
@@ -57,25 +58,25 @@ def upgrade():
         sa.insert(t_sales).values([
             {
                 'value': 10,
-                'date': datetime.strptime('10/11/2020 00:00:00', '%d/%m/%Y %H:%M:%S'),
+                'date': datetime.strptime('10/11/2020 00:00:00', '%d/%m/%Y %H:%M:%S').astimezone(utc),
                 'product_id': 1,
                 'branch_id': 1
             },
             {
                 'value': 35000,
-                'date': datetime.strptime('11/11/2020 00:00:00', '%d/%m/%Y %H:%M:%S'),
+                'date': datetime.strptime('11/11/2020 00:00:00', '%d/%m/%Y %H:%M:%S').astimezone(utc),
                 'product_id': 2,
                 'branch_id': 1
             },
             {
                 'value': 9,
-                'date': datetime.strptime('13/11/2020 00:00:00', '%d/%m/%Y %H:%M:%S'),
+                'date': datetime.strptime('13/11/2020 00:00:00', '%d/%m/%Y %H:%M:%S').astimezone(utc),
                 'product_id': 3,
                 'branch_id': 2
             },
             {
                 'value': 20,
-                'date': datetime.strptime('10/09/2020 00:00:00', '%d/%m/%Y %H:%M:%S'),
+                'date': datetime.strptime('10/09/2020 00:00:00', '%d/%m/%Y %H:%M:%S').astimezone(utc),
                 'product_id': 1,
                 'branch_id': 2
             }

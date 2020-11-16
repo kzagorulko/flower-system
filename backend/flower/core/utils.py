@@ -281,7 +281,7 @@ async def is_user_in_branch(user, branch) -> bool:
     user_branch = await UserBranchModel.query.where(
         (UserBranchModel.branch_id == branch.id) &
         (UserBranchModel.user_id == user.id)
-    )
+    ).gino.first()
 
     return bool(user_branch)
 

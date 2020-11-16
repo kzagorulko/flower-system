@@ -2,6 +2,7 @@ from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
 from starlette.responses import JSONResponse
 
+from pytz import utc
 from datetime import datetime
 
 from ..database import db
@@ -23,13 +24,6 @@ class Sales(HTTPEndpoint):
         data = await request.json()
 
         try:
-            if 'value' not in data:
-                raise Exception('Parameter "value" required')
-            if 'product_id' not in data:
-                raise Exception('Parameter "product_id" required')
-            if 'branch_id' not in data:
-                raise Exception('Parameter "branch_id" required')
-
             value = float(data['value'])
             product_id = data['product_id']
             branch_id = data['branch_id']
@@ -54,7 +48,7 @@ class Sales(HTTPEndpoint):
                 value=value,
                 product_id=product.id,
                 branch_id=branch.id,
-                date=datetime.now()
+                date=datetime.now().astimezone(utc)
             )
 
             return JSONResponse({'id': sale.id})

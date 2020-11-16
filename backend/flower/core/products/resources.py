@@ -7,7 +7,7 @@ from ..utils import (
     with_transaction, jwt_required,
     make_error, Permissions, GinoQueryHelper
 )
-from ..media_utils import MediaUtils
+from ..unit_utils import MediaUtils
 from ..models import ProductModel
 
 permissions = Permissions(app_name='products')
@@ -21,15 +21,6 @@ class Products(HTTPEndpoint):
         data = await request.json()
 
         try:
-            if 'image' not in data:
-                raise Exception('Parameter "image" required')
-            if 'name' not in data:
-                raise Exception('Parameter "name" required')
-            if 'price' not in data:
-                raise Exception('Parameter "price" required')
-            if 'description' not in data:
-                raise Exception('Parameter "description" required')
-
             image_file_base64 = data['image']
             name = data['name']
             price = float(data['price'])
@@ -61,7 +52,7 @@ class Products(HTTPEndpoint):
         total_query = db.select([db.func.count(ProductModel.id)])
 
         if 'name' in query_params:
-            current_query.where(
+            current_query = current_query.where(
                 ProductModel.name.ilike(f'%{query_params["name"]}%')
             )
 
