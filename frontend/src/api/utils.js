@@ -74,3 +74,33 @@ export function request(method, url, data = {}) {
       );
     });
 }
+
+export function convertFileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+
+    reader.readAsDataURL(file.rawFile);
+  });
+}
+
+/**
+ * Pipeline for preparing property "image"
+ * @param params - argument with data.image
+ * @returns callback with prepared argument
+ */
+export function prepareImage(params) {
+  return new Promise((resolve, reject) => {
+    if (!params.data.image) {
+      return resolve(params);
+    }
+
+    return convertFileToBase64(params.data.image).then((base64Pictures) => {
+      const customParams = { ...params };
+
+      customParams.data.image = base64Pictures;
+      return resolve(customParams);
+    }).catch((error) => reject(error));
+  });
+}
