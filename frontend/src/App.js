@@ -6,6 +6,7 @@ import dataProvider from './api/dataProvider';
 import authProvider from './api/authProvider';
 import { UserList, UserCreate, UserEdit } from './components/UserList';
 import { ProviderList, ProviderCreate, ProviderEdit } from './components/ProviderList';
+import { ProductList, ProductCreate, ProductEdit } from './components/ProductsList';
 import UserShow from './components/UserShow';
 
 import './App.less';
@@ -32,6 +33,16 @@ const App = () => (
             create={permissions.providers.includes('create') ? ProviderCreate : null}
             edit={permissions.providers.includes('update')
               || permissions.providers.includes('update_status') ? ProviderEdit : null}
+          />
+        ) : null,
+      permissions.products
+        ? (
+          <Resource
+            name="products"
+            list={ProductList}
+            show={ShowGuesser}
+            create={permissions.products.includes('create') ? ProductCreate : null}
+            edit={permissions.products.includes('update') ? ProductEdit : null}
           />
         ) : null,
     ]}

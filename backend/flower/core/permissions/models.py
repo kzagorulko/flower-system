@@ -26,3 +26,11 @@ class PermissionModel(db.Model):
             'appName': self.app_name,
             'actions': [action for action in self.actions],
         }
+
+
+class PermissionActions:
+    CREATE = 'create'
+    UPDATE = 'update'
+    GET = 'get'
+    GET_ONE = 'get_one'
+    UPDATE_STATUS = 'update_status'

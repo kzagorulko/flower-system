@@ -8,7 +8,9 @@ from starlette.responses import Response, JSONResponse
 
 from .. import config
 from .database import db
-from .models import UserModel, RoleModel, PermissionModel
+from .models import (
+    UserModel, RoleModel, PermissionModel, UserBranchModel, PermissionActions
+)
 
 
 def with_transaction(func):
@@ -168,6 +170,8 @@ def make_error(description, status_code=400):
 
 
 class Permissions:
+    actions = PermissionActions
+
     def __init__(self, app_name):
         self.app_name = app_name
 
@@ -252,3 +256,55 @@ def convert_to_utc(dt):
         return dt.replace(tzinfo=utc)
 
     return dt
+
+
+class GinoQueryHelper:
+    @staticmethod
+    def pagination(query_params, current_query):
+        if 'page' in query_params and 'perPage' in query_params:
+            page = int(query_params['page']) - 1
+            per_page = int(query_params['perPage'])
+            return current_query.limit(per_page).offset(page * per_page)
+        return current_query
+
+    """
+    columns_map = {
+       "column_name": Model.column,
+    }
+    """
+    @staticmethod
+    def order(query_params, current_query, columns_map):
+        def _get_column(column_name, asc=True):
+            if asc:
+                return columns_map[column_name]
+            return columns_map[column_name].desc()
+
+        if 'order' in query_params and 'field' in query_params:
+            return current_query.order_by(
+                _get_column(
+                    query_params['field'],
+                    query_params['order'] == 'ASC'
+                )
+            )
+
+        return current_query
+
+
+async def is_user_in_branch(user, branch) -> bool:
+    user_branch = await UserBranchModel.query.where(
+        (UserBranchModel.branch_id == branch.id) &
+        (UserBranchModel.user_id == user.id)
+    ).gino.first()
+
+    return bool(user_branch)
+
+
+async def is_user_role_in(user, role_names) -> bool:
+    roles = await RoleModel.query.where(
+        RoleModel.name.in_(role_names)
+    ).gino.all()
+
+    for role in roles:
+        if user.role_id == role.id:
+            return True
+    return False

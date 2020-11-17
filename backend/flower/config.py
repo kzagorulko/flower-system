@@ -33,6 +33,13 @@ def _cast_token_expires(value, unit='days'):
         raise ValueError(f'{config(value)} is not int or bool value')
 
 
+SERVER_HOST = config('SERVER_HOST')
+SERVER_PORT = config('SERVER_PORT')
+SERVER_PROTOCOL = config('SERVER_PROTOCOL')
+SERVER_HOSTNAME = (
+    SERVER_PROTOCOL + "://" + SERVER_HOST + ":" + SERVER_PORT + "/"
+)
+
 REFRESH_TOKEN_EXPIRES = _cast_token_expires('REFRESH_TOKEN_EXPIRES', 'days')
 ACCESS_TOKEN_EXPIRES = _cast_token_expires('ACCESS_TOKEN_EXPIRES', 'minutes')
 
@@ -43,3 +50,5 @@ ADMIN_USERNAME = config('ADMIN_USERNAME')
 ADMIN_PASSWORD = config('ADMIN_PASSWORD')
 ADMIN_DISPLAY_NAME = config('ADMIN_DISPLAY_NAME')
 ADMIN_EMAIL = config('ADMIN_EMAIL')
+
+MEDIA_FOLDER = config('MEDIA_FOLDER')
