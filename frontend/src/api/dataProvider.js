@@ -2,10 +2,14 @@
 import {
   request,
   prepareImage,
+  prepareUrl,
 } from './utils';
 
 const flatParams = (params) => {
   let result = {};
+  if (!params) {
+    return params;
+  }
   Object.entries(params).forEach(
     (e) => { result = e[1] instanceof Object ? { ...e[1], ...result } : { ...e, ...result }; },
   );
@@ -13,7 +17,7 @@ const flatParams = (params) => {
 };
 
 export default {
-  getList: (resource, params) => request('GET', `/${resource}/`, flatParams(params))
+  getList: (resource, params) => request('GET', prepareUrl(`/${resource}/`), flatParams(params))
     .then((resp) => {
       const { total } = resp.data;
       return {
@@ -27,7 +31,7 @@ export default {
 
   getOne: (resource, params) => {
     console.log(params);
-    return request('GET', `/${resource}/${params.id}`)
+    return request('GET', prepareUrl(`/${resource}/${params.id}`))
       .then((resp) => {
         const { data } = resp;
         return {
@@ -41,7 +45,7 @@ export default {
   getManyReference: () => {},
 
   create: (resource, params) => prepareImage(params)
-    .then((preparedParams) => request('POST', `/${resource}/`, preparedParams.data)
+    .then((preparedParams) => request('POST', prepareUrl(`/${resource}/`), preparedParams.data)
       .then((resp) => {
         const { data } = resp;
         return {
@@ -50,7 +54,7 @@ export default {
       })),
 
   update: (resource, params) => prepareImage(params)
-    .then((preparedParams) => request('PATCH', `/${resource}/${preparedParams.id}`, preparedParams.data)
+    .then((preparedParams) => request('PATCH', prepareUrl(`/${resource}/${preparedParams.id}`), preparedParams.data)
       .then(() => {
         const data = {
           id: preparedParams.id,
@@ -65,4 +69,9 @@ export default {
   delete: () => {},
 
   deleteMany: () => {},
+
+  getCategories: (resource) => request('GET', `/${resource}/categories`)
+    .then((resp) => resp.data.categories),
+
+  updateStatus: (resource, params) => request('PATCH', `/${resource}/${params.id}/status`, params),
 };

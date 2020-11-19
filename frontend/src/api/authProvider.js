@@ -20,6 +20,7 @@ export default {
         setCookie('refresh_token', refreshToken);
         setCookie('access_token', accessToken);
         setCookie('username', data.identifier);
+        setCookie('userId', resp.data.id);
       });
   },
 

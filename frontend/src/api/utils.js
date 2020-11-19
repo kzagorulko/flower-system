@@ -92,7 +92,7 @@ export function convertFileToBase64(file) {
  */
 export function prepareImage(params) {
   return new Promise((resolve, reject) => {
-    if (!params.data.image) {
+    if (!(params.data && params.data.image)) {
       return resolve(params);
     }
 
@@ -104,3 +104,10 @@ export function prepareImage(params) {
     }).catch((error) => reject(error));
   });
 }
+
+export const prepareUrl = (url) => {
+  if (url.includes('requestCategories')) {
+    return url.replace(/requestCategories/gi, 'requests/categories');
+  }
+  return url;
+};
