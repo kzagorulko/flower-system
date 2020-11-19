@@ -1,7 +1,7 @@
 """added request and request categories tables
 
 Revision ID: f7f61b0fadff
-Revises: 7292deb23125
+Revises: 14af6017bb46
 Create Date: 2020-11-07 21:34:58.470451
 
 """
@@ -12,7 +12,7 @@ import gino.dialects.asyncpg
 
 # revision identifiers, used by Alembic.
 revision = 'f7f61b0fadff'
-down_revision = '7292deb23125'
+down_revision = '14af6017bb46'
 branch_labels = None
 depends_on = None
 
@@ -46,7 +46,7 @@ def upgrade():
         sa.Column('description', sa.String(length=400), nullable=False),
         sa.Column('created', sa.DateTime(timezone=True), nullable=False),
         sa.Column('creator_id', sa.Integer(), nullable=False),
-        sa.Column('departament_id', sa.Integer(), nullable=False),
+        sa.Column('department_id', sa.Integer(), nullable=False),
         sa.Column('category_id', sa.Integer(), nullable=False),
         sa.Column('executor_id', sa.Integer(), nullable=True),
         sa.Column('status', request_status_type, nullable=False),
@@ -54,7 +54,7 @@ def upgrade():
             tuple(['category_id']), ['request_categories.id'],
         ),
         sa.ForeignKeyConstraint(tuple(['creator_id']), ['users.id'], ),
-        sa.ForeignKeyConstraint(tuple(['departament_id']), ['roles.id'], ),
+        sa.ForeignKeyConstraint(tuple(['department_id']), ['roles.id'], ),
         sa.ForeignKeyConstraint(tuple(['executor_id']), ['users.id'], ),
         sa.PrimaryKeyConstraint('id')
     )

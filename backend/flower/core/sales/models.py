@@ -3,7 +3,6 @@ from sqlalchemy import extract
 from sqlalchemy import tuple_
 
 from ..database import db
-from ..unit_utils import convert_to_utc
 
 
 class SalesModel(db.Model):
@@ -67,6 +66,7 @@ class SalesModel(db.Model):
         self._branch = value
 
     def jsonify(self, for_card=False):
+        from ..utils import convert_to_utc
         result = {
             'id': self.id,
             'value': self.value,

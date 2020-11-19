@@ -2,14 +2,14 @@ from uuid import uuid4
 
 from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
-from starlette.responses import JSONResponse, Response
 from passlib.hash import pbkdf2_sha256 as sha256
 
 from ..database import db
 from ..models import UserModel, RoleModel, UserBranchModel, BranchModel
 from ..utils import (
     with_transaction, create_refresh_token, create_access_token, jwt_required,
-    make_error, Permissions, GinoQueryHelper,
+    make_error, Permissions, GinoQueryHelper, make_list_response,
+    make_response, NO_CONTENT,
 )
 
 from .utils import (
@@ -58,10 +58,7 @@ class Users(HTTPEndpoint):
             UserModel.distinct(UserModel.id).load(role=RoleModel)
         ).all()
 
-        return JSONResponse({
-            'items': [user.jsonify() for user in users],
-            'total': total,
-        })
+        return make_list_response([user.jsonify() for user in users], total)
 
     @with_transaction
     @jwt_required
@@ -90,7 +87,7 @@ class Users(HTTPEndpoint):
         if 'branches' in data:
             await change_branches(data['branches'], new_user.id, True)
 
-        return JSONResponse({'id': new_user.id})
+        return make_response({'id': new_user.id})
 
 
 class User(HTTPEndpoint):
@@ -115,7 +112,7 @@ class User(HTTPEndpoint):
             ).all()
         )
         if users:
-            return JSONResponse(users[0].jsonify(for_card=True))
+            return make_response(users[0].jsonify(for_card=True))
         return make_error(f'User with id {user_id} not found', status_code=404)
 
     @with_transaction
@@ -154,7 +151,7 @@ class User(HTTPEndpoint):
         if values:
             await user.update(**values).apply()
 
-        return Response('', status_code=204)
+        return NO_CONTENT
 
 
 async def get_refresh_token(request):
@@ -167,7 +164,7 @@ async def get_refresh_token(request):
     if not sha256.verify(data['password'], user.password):
         return make_error('Wrong credentials', status_code=401)
 
-    return JSONResponse({
+    return make_response({
         'id': user.id,
         'email': user.email,
         'username': user.username,
@@ -178,7 +175,7 @@ async def get_refresh_token(request):
 
 @jwt_required(token_type='refresh')
 async def get_access_token(request, user):
-    return JSONResponse({
+    return make_response({
         'access_token': create_access_token(user.session),
     })
 
@@ -194,12 +191,12 @@ async def reset_session(request, user):
         session=str(uuid4())
     ).apply()
 
-    return Response('', status_code=204)
+    return NO_CONTENT
 
 
 @jwt_required
 async def get_actions(request, user):
-    return JSONResponse(await permissions.get_actions(user.role_id))
+    return make_response(await permissions.get_actions(user.role_id))
 
 
 routes = [

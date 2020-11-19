@@ -1,6 +1,5 @@
 from ...config import SERVER_HOSTNAME
 from ..database import db
-from ..unit_utils import MediaUtils
 
 
 class ProductModel(db.Model):
@@ -13,6 +12,7 @@ class ProductModel(db.Model):
     description = db.Column(db.String(400), nullable=False)
 
     def jsonify(self):
+        from ..utils import MediaUtils
         return {
             'id': self.id,
             'name': self.name,

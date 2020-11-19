@@ -29,7 +29,7 @@ class RequestModel(db.Model):
     creator_id = db.Column(
         db.Integer, db.ForeignKey('users.id'), nullable=False
     )
-    departament_id = db.Column(
+    department_id = db.Column(
         db.Integer, db.ForeignKey('roles.id'), nullable=False
     )
     category_id = db.Column(
@@ -41,18 +41,18 @@ class RequestModel(db.Model):
 
     def __init__(self,  **kwargs):
         super().__init__(**kwargs)
-        self._departament = None
+        self._department = None
         self._creator = None
         self._category = None
         self._executor = None
 
     @property
-    def departament(self):
-        return self._departament
+    def department(self):
+        return self._department
 
-    @departament.setter
-    def departament(self, value):
-        self._departament = value
+    @department.setter
+    def department(self, value):
+        self._department = value
 
     @property
     def creator(self):
@@ -79,13 +79,14 @@ class RequestModel(db.Model):
         self._executor = value
 
     def jsonify(self, for_card=False):
-        print(self.id, self.departament_id, self.departament)
         result = {
             'id': self.id,
             'name': self.name,
-            'departament': self.departament.display_name,
+            'department': self.department.display_name,
             'status': self.status.get_title(),
-            'created': self.created.strftime('%d.%m.%Y %H:%M')
+            'statusCode': self.status.name,
+            'created': self.created.strftime('%d.%m.%Y %H:%M'),
+            'hasExecutor': self.executor_id is not None,
         }
 
         if for_card:
@@ -108,4 +109,3 @@ class RequestCategoryModel(db.Model):
             'id': self.id,
             'name': self.name,
         }
-

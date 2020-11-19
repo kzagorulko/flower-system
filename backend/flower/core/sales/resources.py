@@ -1,16 +1,14 @@
 from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
-from starlette.responses import JSONResponse
 
 from pytz import utc
 from datetime import datetime
 
 from ..database import db
 from ..utils import (
-    with_transaction, jwt_required,
-    make_error, Permissions, GinoQueryHelper, is_user_role_in
+    with_transaction, jwt_required,  is_user_in_branch, make_list_response,
+    make_error, Permissions, GinoQueryHelper, is_user_role_in, make_response,
 )
-from ..utils import is_user_in_branch
 from ..models import SalesModel, ProductModel, BranchModel
 
 permissions = Permissions(app_name='sales')
@@ -51,7 +49,7 @@ class Sales(HTTPEndpoint):
                 date=datetime.now().astimezone(utc)
             )
 
-            return JSONResponse({'id': sale.id})
+            return make_response({'id': sale.id})
 
         except Exception as e:
             return make_error(
@@ -142,10 +140,7 @@ class Sales(HTTPEndpoint):
 
         total = await total_query.gino.scalar()
 
-        return JSONResponse({
-            'items': result,
-            'total': total,
-        })
+        return make_list_response(result, total)
 
 
 class Sale(HTTPEndpoint):
@@ -169,14 +164,14 @@ class Sale(HTTPEndpoint):
             ).first()
         )
 
-        return JSONResponse({
+        return make_response({
             'items': sale.jsonify(for_card=True)
         })
 
 
 @jwt_required
 async def get_actions(request, user):
-    return JSONResponse(await permissions.get_actions(user.role_id))
+    return make_response(await permissions.get_actions(user.role_id))
 
 
 routes = [
