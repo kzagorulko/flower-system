@@ -10,7 +10,7 @@ from ..models import (
 )
 from ..utils import (
     jwt_required, Permissions, make_error, with_transaction, convert_to_utc,
-    GinoQueryHelper, make_response,  make_list_response,  NO_CONTENT
+    GinoQueryHelper, make_response,  make_list_response,  NO_CONTENT,
 )
 from .utils import is_name_unique
 
@@ -129,15 +129,9 @@ class Requests(HTTPEndpoint):
             total_query = total_query.where(permissions_where)
 
         if 'name' in query_params:
-            requests_query = requests_query.where(
-                RequestModel.name.ilike(
-                    f'%{query_params["name"]}%'
-                )
-            )
-            total_query = total_query.where(
-                RequestModel.name.ilike(
-                    f'%{query_params["name"]}%'
-                )
+            requests_query, total_query = GinoQueryHelper.search(
+                RequestModel.name, query_params['name'], requests_query,
+                total_query
             )
 
         if 'view' in query_params:
@@ -204,7 +198,7 @@ class Requests(HTTPEndpoint):
             name=data['name'],
             description=data['description'],
             created=convert_to_utc(datetime.datetime.now()),
-            status='NEW',
+            status=Status.NEW,
             creator_id=user.id,
             department_id=data['department_id'],
             category_id=data['category_id'],
@@ -290,7 +284,7 @@ class Request(HTTPEndpoint):
             )
 
         await system_request.update(
-            executor_id=user.id, status='IN_PROGRESS'
+            executor_id=user.id, status=Status.IN_PROGRESS
         ).apply()
 
         return NO_CONTENT

@@ -274,6 +274,13 @@ class GinoQueryHelper:
 
         return current_query
 
+    @staticmethod
+    def search(field, value, current_query, total_query):
+        return (
+            current_query.where(field.ilike(f'%{value}%')),
+            total_query.where(field.ilike(f'%{value}%'))
+        )
+
 
 def make_error(description, status_code=400):
     return JSONResponse({

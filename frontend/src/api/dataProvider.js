@@ -53,8 +53,8 @@ export default {
         };
       })),
 
-  update: (resource, params) => prepareImage(params)
-    .then((preparedParams) => request('PATCH', prepareUrl(`/${resource}/${preparedParams.id}`), preparedParams.data)
+  update: (resource, params, status = false) => prepareImage(params)
+    .then((preparedParams) => request('PATCH', prepareUrl(`/${resource}/${preparedParams.id}`, status), preparedParams.data)
       .then(() => {
         const data = {
           id: preparedParams.id,
@@ -69,9 +69,4 @@ export default {
   delete: () => {},
 
   deleteMany: () => {},
-
-  getCategories: (resource) => request('GET', `/${resource}/categories`)
-    .then((resp) => resp.data.categories),
-
-  updateStatus: (resource, params) => request('PATCH', `/${resource}/${params.id}/status`, params),
 };
