@@ -47,7 +47,7 @@ class UserModel(db.Model):
             result['email'] = self.email
             result['deactivated'] = self.deactivated
             result['branches'] = [
-                branch.jsonify() for branch in self._branches
+                branch.id for branch in self._branches
             ]
 
         result['role'] = self.role.display_name if self.role else ''

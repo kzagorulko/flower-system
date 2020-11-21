@@ -5,6 +5,7 @@ import {
   List,
   useListContext,
   usePermissions,
+  useDataProvider,
   TopToolbar,
   CreateButton,
   Filter,
@@ -22,7 +23,6 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 
 import { getCookie } from '../../api/utils';
-import dataProvider from '../../api/dataProvider';
 import UserCard from '../UserCard';
 import style from './style.less';
 import QuickFilter from '../QuickFilter';
@@ -103,6 +103,7 @@ export const RequestShow = (props) => {
   const { id } = props;
 
   const notify = useNotify();
+  const dataProvider = useDataProvider();
 
   const [record, setRecord] = useState({});
   const [loading, setLoading] = useState(true);
@@ -137,7 +138,7 @@ export const RequestShow = (props) => {
         <TextField record={record} source="description" />
         <TextField record={record} source="category" />
         <div>
-          <Typography variant="caption" component="div" color="textSecondary">Создатель заявка</Typography>
+          <Typography variant="caption" component="div" color="textSecondary">Создатель заявки</Typography>
           <UserCard user={record.creator} />
         </div>
         <div>
@@ -167,6 +168,7 @@ export const RequestShow = (props) => {
 
 export const RequestCreate = (props) => {
   const [requestCategories, setCategories] = useState([]);
+  const dataProvider = useDataProvider();
   useEffect(() => {
     dataProvider.getList('requests/categories')
       .then(({ data }) => { const v = data; setCategories(() => v); });

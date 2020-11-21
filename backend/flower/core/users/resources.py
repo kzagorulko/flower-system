@@ -25,9 +25,19 @@ class Users(HTTPEndpoint):
     @permissions.required(action=permissions.actions.GET)
     async def get(request):
         users_query = UserModel.outerjoin(RoleModel).select()
-        total_query = db.select([db.func.count(UserModel.id)])
+        total_query = db.select(
+                            [db.func.count(UserModel.id)]
+                    ).select_from(UserModel.outerjoin(RoleModel))
 
         query_params = request.query_params
+
+        if 'role' in query_params:
+            users_query = users_query.where(
+                RoleModel.name == query_params['role']
+            )
+            total_query = total_query.where(
+                RoleModel.name == query_params['role']
+            )
 
         if 'display_name' in query_params:
             users_query = users_query.where(

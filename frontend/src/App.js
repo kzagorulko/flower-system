@@ -4,10 +4,14 @@ import {
 } from 'react-admin';
 import dataProvider from './api/dataProvider';
 import authProvider from './api/authProvider';
-import { UserList, UserCreate, UserEdit } from './components/UserList';
+import {
+  UserList,
+  UserCreate,
+  UserEdit,
+  UserShow,
+} from './components/UserList';
 import { ProviderList, ProviderCreate, ProviderEdit } from './components/ProviderList';
 import { ProductList, ProductCreate, ProductEdit } from './components/ProductsList';
-import UserShow from './components/UserShow';
 import { RequestList, RequestShow, RequestCreate } from './components/Requests';
 import {
   RequestCategoryList,
@@ -74,6 +78,12 @@ const App = () => (
             show={RequestCategoryShow}
             edit={RequestCategoryEdit}
             options={{ label: 'Категории заявок' }}
+          />
+        ) : null,
+      permissions.branches
+        ? (
+          <Resource
+            name="branches"
           />
         ) : null,
     ]}

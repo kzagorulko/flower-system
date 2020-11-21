@@ -1,3 +1,4 @@
+import json
 from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
 
@@ -22,6 +23,11 @@ class Branches(HTTPEndpoint):
 
         query_params = request.query_params
 
+        if 'id' in query_params:
+            ids = json.loads(query_params['id'])
+            branches_query = branches_query.where(BranchModel.id.in_(ids))
+            total_query = total_query.where(BranchModel.id.in_(ids))
+
         if 'address' in query_params:
             branches_query.where(
                 BranchModel.address.ilike(f'%{query_params["address"]}%')
@@ -37,7 +43,7 @@ class Branches(HTTPEndpoint):
             query_params,
             branches_query, {
                 'id': BranchModel.id,
-                'address': BranchModel.name,
+                'address': BranchModel.address,
             }
         )
 
