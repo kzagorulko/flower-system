@@ -1,15 +1,291 @@
+import os
 import jwt
 import datetime
 
+from pytz import utc
+from uuid import uuid4
 from functools import wraps
+from base64 import b64decode
 from starlette.requests import Request
-from starlette.responses import Response, JSONResponse
+from starlette.responses import JSONResponse, Response
+
 
 from .. import config
 from .database import db
 from .models import (
-    UserModel, RoleModel, PermissionModel, UserBranchModel, PermissionActions
+    UserModel, RoleModel, PermissionModel, UserBranchModel, PermissionAction,
 )
+
+
+async def _extract_user(headers, token_type):
+    if 'authorization' not in headers:
+        raise UserExtractionError(
+            description='Missing Authentication Token',
+            status_code=401
+        )
+
+    token = headers['authorization'].split(' ')[1]
+
+    payload = jwt.decode(
+        token, config.SECRET_KEY, algorithms=[config.JWT_ALGORITHM]
+    )
+
+    if (
+            'iat' not in payload or 'session' not in payload
+            or 'token_type' not in payload
+            or payload['token_type'] != token_type
+    ):
+        raise UserExtractionError(
+            description='Invalid auth token',
+            status_code=400
+        )
+
+    user = await UserModel.query.where(
+        UserModel.session == payload['session']
+    ).gino.first()
+
+    if not user:
+        raise UserExtractionError(
+            description='User not found or token was revoked',
+            status_code=404
+        )
+
+    return user
+
+
+def jwt_required(*arguments, return_user=True, token_type='access'):
+    def wrapper(func):
+        async def wrapper_view(*args, **kwargs):
+            request = list(
+                filter(lambda arg: isinstance(arg, Request), args)
+            )[0]
+
+            if not hasattr(request, 'headers'):
+                return make_error('Missing headers', status_code=400)
+            headers = request.headers
+
+            try:
+                user = await _extract_user(headers, token_type)
+            except UserExtractionError as e:
+                return make_error(e.description, status_code=e.status_code)
+            except jwt.exceptions.ExpiredSignatureError:
+                return make_error('Signature has expired', status_code=401)
+            except jwt.exceptions.DecodeError:
+                return make_error('Token is corrupted', status_code=400)
+
+            if return_user:
+                return await func(*args, user=user, **kwargs)
+            return await func(*args, **kwargs)
+
+        return wrapper_view
+
+    if len(arguments) > 0:
+        return wrapper(arguments[0])
+    return wrapper
+
+
+class Permissions:
+    actions = PermissionAction
+
+    def __init__(self, app_name):
+        self.app_name = app_name
+
+    def required(
+            self, action, additional_actions=(), *arguments,
+            return_role=False, return_user=False, return_actions=False
+    ):
+        def wrapper(func):
+            async def wrapper_view(*args, user, **kwargs):
+                if not user:
+                    raise ValueError('User not in arguments!!!')
+                role = await RoleModel.get(user.role_id)
+                if not role:
+                    return make_error(
+                        "User doesn't have a role", status_code=403
+                    )
+                actions_clause = (PermissionModel.action == action)
+                for additional_action in additional_actions:
+                    actions_clause |= (
+                            PermissionModel.action == additional_action
+                    )
+
+                permissions = await PermissionModel.query.where(
+                    (PermissionModel.app_name == self.app_name)
+                    & actions_clause
+                    & (PermissionModel.role_id == role.id)
+                ).gino.all()
+
+                if not permissions:
+                    return make_error(
+                        "Forbidden", status_code=403
+                    )
+
+                actions = [permission.action for permission in permissions]
+
+                return_values = {
+                    'actions': (return_actions, actions),
+                    'user': (return_user, user),
+                    'role': (return_role, role),
+                }
+
+                results = self.get_results(return_values)
+
+                return await func(*args, **results, **kwargs)
+
+            return wrapper_view
+
+        if len(arguments) > 0:
+            return wrapper(arguments[0])
+        return wrapper
+
+    async def get_actions(self, role_id):
+        actions = await db.select([
+            PermissionModel.action
+        ]).select_from(
+            PermissionModel
+        ).where(
+            (PermissionModel.app_name == self.app_name)
+            & (PermissionModel.role_id == role_id)
+        ).gino.all()
+        return {
+            'actions': [action[0] for action in actions]
+        }
+
+    @staticmethod
+    def get_results(return_values):
+        results = {}
+        for key, value in return_values.items():
+            if value[0]:
+                results[key] = value[1]
+
+        return results
+
+
+async def is_user_in_branch(user, branch) -> bool:
+    user_branch = await UserBranchModel.query.where(
+        (UserBranchModel.branch_id == branch.id) &
+        (UserBranchModel.user_id == user.id)
+    ).gino.first()
+
+    return bool(user_branch)
+
+
+async def is_user_role_in(user, role_names) -> bool:
+    roles = await RoleModel.query.where(
+        RoleModel.name.in_(role_names)
+    ).gino.all()
+
+    for role in roles:
+        if user.role_id == role.id:
+            return True
+    return False
+
+
+class MediaUtils:
+    @staticmethod
+    async def save_file_base64(ext_file):
+        service_data, base64_data = ext_file.split(',')
+        ext = service_data.split(';')[0].split('/')[-1]
+
+        file_name = MediaUtils.create_filename(ext)
+
+        path = file_name[:2]
+
+        MediaUtils.create_folder_if_not_exist(
+            os.path.join(config.MEDIA_FOLDER, path)
+        )
+
+        path = os.path.join(path, file_name[2:])
+
+        with open(os.path.join(config.MEDIA_FOLDER, path), 'wb') as fh:
+            fh.write(b64decode(base64_data))
+
+        return path
+
+    @staticmethod
+    def create_folder_if_not_exist(path):
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+    @staticmethod
+    def create_filename(ext):
+        return str(uuid4()) + '.' + ext
+
+    @staticmethod
+    def delete_file(path):
+        full_path = MediaUtils.generate_full_path(path)
+
+        try:
+            os.remove(full_path)
+
+            dir_path = os.path.split(full_path)[0]
+
+            if not os.listdir(dir_path):
+                os.rmdir(dir_path)
+        except FileNotFoundError:
+            pass
+
+    @staticmethod
+    def generate_full_path(path):
+        # PS: normpath на Windows преобразует обычные слеши в обратные
+        return os.path.normpath(os.path.join(config.MEDIA_FOLDER, path))
+
+
+def convert_to_utc(dt):
+    """Return same datetime if it's aware or sets it's timezone to UTC."""
+
+    if dt is None:
+        dt = datetime.datetime.utcfromtimestamp(0)
+
+    if dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None:
+        return dt.replace(tzinfo=utc)
+
+    return dt
+
+
+class GinoQueryHelper:
+    @staticmethod
+    def pagination(query_params, current_query):
+        if 'page' in query_params and 'perPage' in query_params:
+            page = int(query_params['page']) - 1
+            per_page = int(query_params['perPage'])
+            return current_query.limit(per_page).offset(page * per_page)
+        return current_query
+
+    """
+    columns_map = {
+       "column_name": Model.column,
+    }
+    """
+    @staticmethod
+    def order(query_params, current_query, columns_map):
+        def _get_column(column_name, asc=True):
+            if asc:
+                return columns_map[column_name]
+            return columns_map[column_name].desc()
+
+        if 'order' in query_params and 'field' in query_params:
+            return current_query.order_by(
+                _get_column(
+                    query_params['field'],
+                    query_params['order'] == 'ASC'
+                )
+            )
+
+        return current_query
+
+    @staticmethod
+    def search(field, value, current_query, total_query):
+        return (
+            current_query.where(field.ilike(f'%{value}%')),
+            total_query.where(field.ilike(f'%{value}%'))
+        )
+
+
+def make_error(description, status_code=400):
+    return JSONResponse({
+        'description': description
+    }, status_code=status_code)
 
 
 def with_transaction(func):
@@ -87,73 +363,6 @@ def _encode_jwt(session, token_type):
     ).decode('utf-8')
 
 
-async def _extract_user(headers, token_type):
-    if 'authorization' not in headers:
-        raise UserExtractionError(
-            description='Missing Authentication Token',
-            status_code=401
-        )
-
-    token = headers['authorization'].split(' ')[1]
-
-    payload = jwt.decode(
-        token, config.SECRET_KEY, algorithms=[config.JWT_ALGORITHM]
-    )
-
-    if (
-            'iat' not in payload or 'session' not in payload
-            or 'token_type' not in payload
-            or payload['token_type'] != token_type
-    ):
-        raise UserExtractionError(
-            description='Invalid auth token',
-            status_code=400
-        )
-
-    user = await UserModel.query.where(
-        UserModel.session == payload['session']
-    ).gino.first()
-
-    if not user:
-        raise UserExtractionError(
-            description='User not found or token was revoked',
-            status_code=404
-        )
-
-    return user
-
-
-def jwt_required(*arguments, return_user=True, token_type='access'):
-    def wrapper(func):
-        async def wrapper_view(*args, **kwargs):
-            request = list(
-                filter(lambda arg: isinstance(arg, Request), args)
-            )[0]
-
-            if not hasattr(request, 'headers'):
-                return make_error('Missing headers', status_code=400)
-            headers = request.headers
-
-            try:
-                user = await _extract_user(headers, token_type)
-            except UserExtractionError as e:
-                return make_error(e.description, status_code=e.status_code)
-            except jwt.exceptions.ExpiredSignatureError:
-                return make_error('Signature has expired', status_code=401)
-            except jwt.exceptions.DecodeError:
-                return make_error('Token is corrupted', status_code=400)
-
-            if return_user:
-                return await func(*args, user=user, **kwargs)
-            return await func(*args, **kwargs)
-
-        return wrapper_view
-
-    if len(arguments) > 0:
-        return wrapper(arguments[0])
-    return wrapper
-
-
 def create_access_token(session):
     return _encode_jwt(session, 'access')
 
@@ -162,136 +371,15 @@ def create_refresh_token(session):
     return _encode_jwt(session, 'refresh')
 
 
-def make_error(description, status_code=400):
+def make_list_response(items, total):
     return JSONResponse({
-        'description': description
-    }, status_code=status_code)
+        'items': items,
+        'total': total,
+    })
 
 
-class Permissions:
-    actions = PermissionActions
-
-    def __init__(self, app_name):
-        self.app_name = app_name
-
-    def required(
-            self, action, additional_actions=(), *arguments,
-            return_role=False, return_user=False, return_actions=False
-    ):
-        def wrapper(func):
-            async def wrapper_view(*args, user, **kwargs):
-                if not user:
-                    raise ValueError('User not in arguments!!!')
-                role = await RoleModel.get(user.role_id)
-                if not role:
-                    return make_error(
-                        "User doesn't have a role", status_code=403
-                    )
-                actions_clause = (PermissionModel.action == action)
-                for additional_action in additional_actions:
-                    actions_clause |= (
-                            PermissionModel.action == additional_action
-                    )
-
-                permissions = await PermissionModel.query.where(
-                    (PermissionModel.app_name == self.app_name)
-                    & actions_clause
-                    & (PermissionModel.role_id == role.id)
-                ).gino.all()
-
-                if not permissions:
-                    return make_error(
-                        "Forbidden", status_code=403
-                    )
-
-                actions = [permission.action for permission in permissions]
-
-                return_values = {
-                    'actions': (return_actions, actions),
-                    'user': (return_user, user),
-                    'role': (return_role, role),
-                }
-
-                results = self.get_results(return_values)
-
-                return await func(*args, **results, **kwargs)
-
-            return wrapper_view
-
-        if len(arguments) > 0:
-            return wrapper(arguments[0])
-        return wrapper
-
-    async def get_actions(self, role_id):
-        actions = await db.select([
-            PermissionModel.action
-        ]).select_from(
-            PermissionModel
-        ).where(
-            (PermissionModel.app_name == self.app_name)
-            & (PermissionModel.role_id == role_id)
-        ).gino.all()
-        return {
-            'actions': [action[0] for action in actions]
-        }
-
-    @staticmethod
-    def get_results(return_values):
-        results = {}
-        for key, value in return_values.items():
-            if value[0]:
-                results[key] = value[1]
-
-        return results
+def make_response(content):
+    return JSONResponse(content)
 
 
-class GinoQueryHelper:
-    @staticmethod
-    def pagination(query_params, current_query):
-        if 'page' in query_params and 'perPage' in query_params:
-            page = int(query_params['page']) - 1
-            per_page = int(query_params['perPage'])
-            return current_query.limit(per_page).offset(page * per_page)
-        return current_query
-
-    """
-    columns_map = {
-       "column_name": Model.column,
-    }
-    """
-    @staticmethod
-    def order(query_params, current_query, columns_map):
-        def _get_column(column_name, asc=True):
-            if asc:
-                return columns_map[column_name]
-            return columns_map[column_name].desc()
-
-        if 'order' in query_params and 'field' in query_params:
-            return current_query.order_by(
-                _get_column(
-                    query_params['field'],
-                    query_params['order'] == 'ASC'
-                )
-            )
-
-        return current_query
-
-
-async def is_user_in_branch(user, branch) -> bool:
-    user_branch = await UserBranchModel.query.where(
-        (UserBranchModel.branch_id == branch.id) &
-        (UserBranchModel.user_id == user.id)
-    ).gino.first()
-
-    return bool(user_branch)
-
-
-async def is_user_role_in(user, role_names) -> bool:
-    roles = await RoleModel.query.where(
-        RoleModel.name.in_(role_names)
-    ).gino.all()
-
-    for role in roles:
-        if user.role_id == role.id:
-            return True
-    return False
+NO_CONTENT = Response('', status_code=204)

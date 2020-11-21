@@ -1,13 +1,13 @@
 from starlette.routing import Route
-from starlette.responses import JSONResponse
-from ..utils import jwt_required
+
+from ..utils import jwt_required, make_response
 from ..models import RoleModel
 
 
 @jwt_required(return_user=False)
 async def get_roles(request):
     roles = await RoleModel.query.gino.all()
-    return JSONResponse({
+    return make_response({
         'roles': [role.jsonify() for role in roles]
     })
 

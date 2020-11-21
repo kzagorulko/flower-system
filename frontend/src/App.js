@@ -8,6 +8,13 @@ import { UserList, UserCreate, UserEdit } from './components/UserList';
 import { ProviderList, ProviderCreate, ProviderEdit } from './components/ProviderList';
 import { ProductList, ProductCreate, ProductEdit } from './components/ProductsList';
 import UserShow from './components/UserShow';
+import { RequestList, RequestShow, RequestCreate } from './components/Requests';
+import {
+  RequestCategoryList,
+  RequestCategoryCreate,
+  RequestCategoryShow,
+  RequestCategoryEdit,
+} from './components/RequestCategories';
 
 import './App.less';
 
@@ -22,6 +29,7 @@ const App = () => (
             show={UserShow}
             create={permissions.users.includes('create') ? UserCreate : null}
             edit={permissions.users.includes('update') ? UserEdit : null}
+            options={{ label: 'Пользователи' }}
           />
         ) : null,
       permissions.providers
@@ -33,6 +41,7 @@ const App = () => (
             create={permissions.providers.includes('create') ? ProviderCreate : null}
             edit={permissions.providers.includes('update')
               || permissions.providers.includes('update_status') ? ProviderEdit : null}
+            options={{ label: 'Поставщики' }}
           />
         ) : null,
       permissions.products
@@ -43,6 +52,28 @@ const App = () => (
             show={ShowGuesser}
             create={permissions.products.includes('create') ? ProductCreate : null}
             edit={permissions.products.includes('update') ? ProductEdit : null}
+            options={{ label: 'Продукты' }}
+          />
+        ) : null,
+      permissions.requests
+        ? (
+          <Resource
+            name="requests"
+            list={RequestList}
+            show={RequestShow}
+            create={permissions.requests.includes('create') ? RequestCreate : null}
+            options={{ label: 'Заявки' }}
+          />
+        ) : null,
+      permissions.requests.includes('create_category')
+        ? (
+          <Resource
+            name="requestCategories"
+            list={RequestCategoryList}
+            create={RequestCategoryCreate}
+            show={RequestCategoryShow}
+            edit={RequestCategoryEdit}
+            options={{ label: 'Категории заявок' }}
           />
         ) : null,
     ]}

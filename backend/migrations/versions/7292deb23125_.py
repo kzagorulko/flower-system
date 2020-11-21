@@ -1,4 +1,4 @@
-"""empty message
+"""added branches
 
 Revision ID: 7292deb23125
 Revises: b1a0d6cd7fa7
@@ -24,7 +24,7 @@ def upgrade():
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('address')
     )
-    t_user_x_branches = op.create_table(
+    op.create_table(
         'user_x_branch',
         sa.Column('user_id', sa.Integer(), nullable=False),
         sa.Column('branch_id', sa.Integer(), nullable=False),

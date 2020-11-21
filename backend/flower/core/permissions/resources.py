@@ -1,6 +1,4 @@
-from starlette.responses import JSONResponse
-
-from ..utils import jwt_required
+from ..utils import jwt_required, make_response
 from ..models import PermissionModel
 
 
@@ -22,4 +20,4 @@ async def get_apps(request, user):
         _app = app.jsonify()
         result[_app['appName']] = _app['actions']
 
-    return JSONResponse(result)
+    return make_response(result)
