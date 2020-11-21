@@ -1,13 +1,11 @@
 from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
-from starlette.responses import JSONResponse
 
 from ..database import db
 from ..utils import (
-    with_transaction, jwt_required,
-    make_error, Permissions, GinoQueryHelper
+    with_transaction, jwt_required, make_response, make_list_response,
+    make_error, Permissions, GinoQueryHelper, MediaUtils, NO_CONTENT,
 )
-from ..unit_utils import MediaUtils
 from ..models import ProductModel
 
 permissions = Permissions(app_name='products')
@@ -35,7 +33,7 @@ class Products(HTTPEndpoint):
                 description=description
             )
 
-            return JSONResponse({'id': product.id})
+            return make_response({'id': product.id})
 
         except Exception as e:
             return make_error(
@@ -71,10 +69,10 @@ class Products(HTTPEndpoint):
         total = await total_query.gino.scalar()
         products = await current_query.gino.all()
 
-        return JSONResponse({
-            'items': [product.jsonify() for product in products],
-            'total': total,
-        })
+        return make_list_response(
+            [product.jsonify() for product in products],
+            total
+        )
 
 
 class Product(HTTPEndpoint):
@@ -119,7 +117,7 @@ class Product(HTTPEndpoint):
                 description=description
             ).apply()
 
-            return JSONResponse({'product': product.jsonify()})
+            return NO_CONTENT
 
         except Exception as e:
             return make_error(
@@ -140,12 +138,12 @@ class Product(HTTPEndpoint):
                 status_code=404
             )
 
-        return JSONResponse(product.jsonify())
+        return make_response(product.jsonify())
 
 
 @jwt_required
 async def get_actions(request, user):
-    return JSONResponse(await permissions.get_actions(user.role_id))
+    return make_response(await permissions.get_actions(user.role_id))
 
 
 routes = [

@@ -28,9 +28,11 @@ class PermissionModel(db.Model):
         }
 
 
-class PermissionActions:
+class PermissionAction:
     CREATE = 'create'
     UPDATE = 'update'
     GET = 'get'
     GET_ONE = 'get_one'
     UPDATE_STATUS = 'update_status'
+    CREATE_CATEGORY = 'create_category'
+    UPDATE_CATEGORY = 'update_category'

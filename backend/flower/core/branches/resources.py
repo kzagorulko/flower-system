@@ -1,11 +1,11 @@
-from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
 
 from ..database import db
 from ..models import BranchModel, UserModel, UserBranchModel
 from ..utils import (
-    jwt_required, make_error, with_transaction, Permissions, GinoQueryHelper
+    jwt_required, make_error, with_transaction, Permissions, GinoQueryHelper,
+    make_response, make_list_response, NO_CONTENT,
 )
 from .utils import is_address_unique
 
@@ -44,10 +44,10 @@ class Branches(HTTPEndpoint):
         total = await total_query.gino.scalar()
         branches = await branches_query.gino.all()
 
-        return JSONResponse({
-            'items': [branch.jsonify() for branch in branches],
-            'total': total,
-        })
+        return make_list_response(
+            [branch.jsonify() for branch in branches],
+            total
+        )
 
     @with_transaction
     @jwt_required
@@ -64,7 +64,7 @@ class Branches(HTTPEndpoint):
             address=data['address']
         )
 
-        return JSONResponse({'id': new_branch.id})
+        return make_response({'id': new_branch.id})
 
 
 class Branch(HTTPEndpoint):
@@ -91,7 +91,7 @@ class Branch(HTTPEndpoint):
         ).all()
 
         if branches:
-            return JSONResponse(branches[0].jsonify(for_card=True))
+            return make_response(branches[0].jsonify(for_card=True))
         return make_error(description='Branch not found', status_code=404)
 
     @with_transaction
@@ -110,12 +110,12 @@ class Branch(HTTPEndpoint):
         if 'address' in data:
             await branch.update(address=data['address']).apply()
 
-        return Response('', status_code=204)
+        return NO_CONTENT
 
 
 @jwt_required
 async def get_actions(request, user):
-    return JSONResponse(await permissions.get_actions(user.role_id))
+    return make_response(await permissions.get_actions(user.role_id))
 
 
 routes = [

@@ -61,10 +61,9 @@ __all__ = ['UserModel']
 
 ```python
 from starlette.endpoints import HTTPEndpoint
-from starlette.responses import JSONResponse
 
 from ..models import UserModel
-from ..utils import make_error
+from ..utils import make_error, make_response
 
 
 class User(HTTPEndpoint):
@@ -73,11 +72,11 @@ class User(HTTPEndpoint):
         user_id = request.path_params['user_id']
         user = await UserModel.get(user_id)
         if user:
-            return JSONResponse(user.jsonify())
+            return make_response(user.jsonify())
         return make_error(description='User not found', status_code=404)
             
 async def ping(request):
-    return JSONResponse({'onPing': 'wePong'})
+    return make_response({'onPing': 'wePong'})
 ```
 
 
@@ -195,10 +194,14 @@ role = request.query_params['role']
 
 При ответах придерживаемся следующих правил:
 
-- При создании вернуть `id` новой сущности (`JSONResponse`)
-- При обновлении данных, вернуть '', 204 NoContent (`Response`)
-- При ошибке вызвать функцию `utils/make_error`, передать описание ошибки
-и указать `status_code` (`JSONResponse`)
+- При создании вернуть `id` новой сущности `make_response(content)`  
+из `core/utils`
+- При возврате сущности также вернуть `make_response(content)`
+- При возврате списка вернуть `make_list_response(<items>, <total>)`
+ из `core/utils`
+- При обновлении данных, вернуть константу `NO_CONTENT` из `core/utils`
+- При ошибке вызвать функцию `make_error` из `core/utils`, передать описание
+ошибки и указать `status_code`
 
 ### <a name="Naming"></a> Именование
 
