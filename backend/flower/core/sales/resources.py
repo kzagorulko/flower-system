@@ -2,14 +2,15 @@ from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
 
 from pytz import utc
-from datetime import datetime
+from calendar import monthrange
+from datetime import datetime, date
 
 from ..database import db
 from ..utils import (
     with_transaction, jwt_required,  is_user_in_branch, make_list_response,
     make_error, Permissions, GinoQueryHelper, is_user_role_in, make_response,
 )
-from ..models import SalesModel, ProductModel, BranchModel
+from ..models import SaleModel, ProductModel, BranchModel
 
 permissions = Permissions(app_name='sales')
 
@@ -42,7 +43,7 @@ class Sales(HTTPEndpoint):
             ):
                 raise Exception('User not in branch')
 
-            sale = await SalesModel.create(
+            sale = await SaleModel.create(
                 value=value,
                 product_id=product.id,
                 branch_id=branch.id,
@@ -62,34 +63,43 @@ class Sales(HTTPEndpoint):
     async def get(self, request):
         query_params = request.query_params
 
-        current_query = SalesModel.query
+        current_query = SaleModel.query
 
-        total_query = db.select(
-            [db.func.count(db.func.distinct(SalesModel.date_month_year))]
-        )
+        total_query = db.select([db.func.count(SaleModel.id)])
 
-        # filtering
         if 'product_id' in query_params:
             current_query = current_query.where(
-                SalesModel.product_id == int(query_params['product_id'])
+                SaleModel.product_id == int(query_params['product_id'])
             )
             total_query = total_query.where(
-                SalesModel.product_id == int(query_params['product_id'])
+                SaleModel.product_id == int(query_params['product_id'])
             )
         if 'branch_id' in query_params:
             current_query = current_query.where(
-                SalesModel.branch_id == int(query_params['branch_id'])
+                SaleModel.branch_id == int(query_params['branch_id'])
             )
             total_query = total_query.where(
-                SalesModel.branch_id == int(query_params['branch_id'])
+                SaleModel.branch_id == int(query_params['branch_id'])
             )
-        if 'year' in query_params and 'month' in query_params:
+        if 'startDate' in query_params:
+            month, year = query_params['startDate'].split('.')
+            start_date = date(int(year), int(month), 1)
             current_query = current_query.where(
-                (SalesModel.date_month == float(query_params['month'])) &
-                (SalesModel.date_year == float(query_params['year'])))
+                SaleModel.date >= start_date
+            )
             total_query = total_query.where(
-                (SalesModel.date_month == float(query_params['month'])) &
-                (SalesModel.date_year == float(query_params['year'])))
+                SaleModel.date >= start_date
+            )
+        if 'endDate' in query_params:
+            month, year = query_params['endDate'].split('.')
+            num_days = monthrange(int(year), int(month))[1]
+            end_date = date(int(year), int(month), num_days)
+            current_query = current_query.where(
+                SaleModel.date <= end_date
+            )
+            total_query = total_query.where(
+                SaleModel.date <= end_date
+            )
 
         current_query = GinoQueryHelper.pagination(
             query_params, current_query
@@ -102,45 +112,15 @@ class Sales(HTTPEndpoint):
             },
             current_query,
             {
-                'date_month_year': SalesModel.date_month_year
+                'date_month_year': SaleModel.date_month_year
             }
         )
 
         sales = await current_query.gino.all()
 
-        result = []
-        current_date_group = {}  # словарь дла хранения кластера продаж
-
-        # проходит по всем продажам, разбивая их на кластеры
-        for sale in sales:
-
-            if not current_date_group:
-                current_date_group = {
-                    "items": [],
-                    "date": sale.date_month_year
-                }
-
-            # замыкаем кластер по месяцу и дате
-            if sale.date_month_year != current_date_group['date']:
-                result.append({
-                    "date": current_date_group['date'].zfill(7),
-                    "sales": current_date_group['items'],
-                })
-                current_date_group['date'] = sale.date_month_year
-                current_date_group['items'] = []
-
-            current_date_group['items'].append(sale.jsonify())
-
-        # проверяем, нужно ли замкнуть кластер в последний раз
-        if current_date_group['items']:
-            result.append({
-                "date": current_date_group['date'].zfill(7),
-                "sales": current_date_group['items'],
-            })
-
         total = await total_query.gino.scalar()
 
-        return make_list_response(result, total)
+        return make_list_response([sale.jsonify() for sale in sales], total)
 
 
 class Sale(HTTPEndpoint):
@@ -150,16 +130,16 @@ class Sale(HTTPEndpoint):
         sale_id = request.path_params['sale_id']
 
         sale = (
-            await SalesModel
+            await SaleModel
             .outerjoin(ProductModel)
             .outerjoin(BranchModel)
             .select()
             .where(
-                SalesModel.id == sale_id
+                SaleModel.id == sale_id
             )
             .gino.load(
-                SalesModel.distinct(
-                    SalesModel.id
+                SaleModel.distinct(
+                    SaleModel.id
                 ).load(product=ProductModel, branch=BranchModel)
             ).first()
         )
