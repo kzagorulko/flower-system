@@ -5,7 +5,7 @@ from sqlalchemy import tuple_
 from ..database import db
 
 
-class SalesModel(db.Model):
+class SaleModel(db.Model):
     __tablename__ = 'sales'
 
     def __init__(self, **kwargs):

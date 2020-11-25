@@ -1,6 +1,6 @@
 from .roles.models import RoleModel
 from .users.models import UserModel
-from .sales.models import SalesModel
+from .sales.models import SaleModel
 from .products.models import ProductModel
 from .permissions.models import PermissionModel, PermissionAction
 from .providers.models import ProviderModel
@@ -11,7 +11,7 @@ from .requests.models import RequestCategoryModel, RequestModel, RequestStatus
 __all__ = [
     'UserModel',
     'RoleModel',
-    'SalesModel',
+    'SaleModel',
     'BranchModel',
     'RequestModel',
     'ProductModel',
