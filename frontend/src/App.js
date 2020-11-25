@@ -19,6 +19,7 @@ import {
   RequestCategoryShow,
   RequestCategoryEdit,
 } from './components/RequestCategories';
+import { SalesList, SalesCreate } from './components/SalesList';
 
 import './App.less';
 
@@ -84,6 +85,15 @@ const App = () => (
         ? (
           <Resource
             name="branches"
+          />
+        ) : null,
+      permissions.sales
+        ? (
+          <Resource
+            name="sales"
+            list={SalesList}
+            create={permissions.sales.includes('create') ? SalesCreate : null}
+            options={{ label: 'Продажи' }}
           />
         ) : null,
     ]}

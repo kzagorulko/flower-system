@@ -1,3 +1,4 @@
+import json
 from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
 
@@ -48,6 +49,11 @@ class Products(HTTPEndpoint):
 
         current_query = ProductModel.query
         total_query = db.select([db.func.count(ProductModel.id)])
+
+        if 'id' in query_params:
+            ids = json.loads(query_params['id'])
+            current_query = current_query.where(ProductModel.id.in_(ids))
+            total_query = total_query.where(ProductModel.id.in_(ids))
 
         if 'name' in query_params:
             current_query = current_query.where(

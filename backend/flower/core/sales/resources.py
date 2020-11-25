@@ -1,14 +1,14 @@
 from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
 
-from pytz import utc
-from calendar import monthrange
 from datetime import datetime, date
+from calendar import monthrange
 
 from ..database import db
 from ..utils import (
     with_transaction, jwt_required,  is_user_in_branch, make_list_response,
     make_error, Permissions, GinoQueryHelper, is_user_role_in, make_response,
+    convert_to_utc,
 )
 from ..models import SaleModel, ProductModel, BranchModel
 
@@ -47,7 +47,7 @@ class Sales(HTTPEndpoint):
                 value=value,
                 product_id=product.id,
                 branch_id=branch.id,
-                date=datetime.now().astimezone(utc)
+                date=convert_to_utc(datetime.now())
             )
 
             return make_response({'id': sale.id})
@@ -82,7 +82,7 @@ class Sales(HTTPEndpoint):
                 SaleModel.branch_id == int(query_params['branch_id'])
             )
         if 'startDate' in query_params:
-            month, year = query_params['startDate'].split('.')
+            year, month = query_params['startDate'].split('-')[:2]
             start_date = date(int(year), int(month), 1)
             current_query = current_query.where(
                 SaleModel.date >= start_date
@@ -91,7 +91,7 @@ class Sales(HTTPEndpoint):
                 SaleModel.date >= start_date
             )
         if 'endDate' in query_params:
-            month, year = query_params['endDate'].split('.')
+            year, month = query_params['endDate'].split('-')[:2]
             num_days = monthrange(int(year), int(month))[1]
             end_date = date(int(year), int(month), num_days)
             current_query = current_query.where(
@@ -106,13 +106,15 @@ class Sales(HTTPEndpoint):
         )
 
         current_query = GinoQueryHelper.order(
-            {
-                'field': 'date_month_year',
-                'order': 'DESC',
-            },
+            query_params,
             current_query,
             {
-                'date_month_year': SaleModel.date_month_year
+                'date_month_year': SaleModel.date_month_year,
+                'date': SaleModel.date,
+                'value': SaleModel.value,
+                'product_id': SaleModel.product_id,
+                'branch_id': SaleModel.branch_id,
+                'id': SaleModel.id,
             }
         )
 
