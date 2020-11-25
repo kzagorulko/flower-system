@@ -17,9 +17,8 @@ import {
   AutocompleteInput,
   Filter,
   usePermissions,
-  AutocompleteArrayInput,
-  ReferenceArrayInput,
-  ReferenceArrayField,
+  ReferenceInput,
+  ReferenceField,
   SelectInput,
 } from 'react-admin';
 
@@ -64,9 +63,9 @@ export const UserCreate = (props) => (
         choices={rolesChoices}
         optionValue="name"
       />
-      <ReferenceArrayInput label="Branches" source="branches" reference="branches">
-        <AutocompleteArrayInput optionText="address" optionValue="id" allowEmpty />
-      </ReferenceArrayInput>
+      <ReferenceInput label="Branches" source="branch_id" reference="branches">
+        <AutocompleteInput optionText="address" optionValue="id" allowEmpty />
+      </ReferenceInput>
     </SimpleForm>
   </Create>
 );
@@ -78,12 +77,9 @@ export const UserShow = (props) => (
       <TextField source="displayName" />
       <BooleanField source="deactivated" />
       <TextField source="email" />
-      <ReferenceArrayField label="Branches" source="branches" reference="branches">
-        <Datagrid>
-          <TextField sortable={false} source="id" />
-          <TextField sortable={false} source="address" />
-        </Datagrid>
-      </ReferenceArrayField>
+      <ReferenceField label="Branches" source="branch_id" reference="branches">
+        <TextField source="address" />
+      </ReferenceField>
     </SimpleShowLayout>
   </Show>
 );
@@ -101,9 +97,9 @@ export const UserEdit = (props) => (
         choices={rolesChoices}
         optionValue="name"
       />
-      <ReferenceArrayInput label="Branches" source="branches" reference="branches">
-        <AutocompleteArrayInput optionText="address" optionValue="id" allowEmpty />
-      </ReferenceArrayInput>
+      <ReferenceInput label="Branches" source="branch_id" reference="branches">
+        <AutocompleteInput optionText="address" optionValue="id" allowEmpty />
+      </ReferenceInput>
     </SimpleForm>
   </Edit>
 );

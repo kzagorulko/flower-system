@@ -5,7 +5,7 @@ from starlette.endpoints import HTTPEndpoint
 from passlib.hash import pbkdf2_sha256 as sha256
 
 from ..database import db
-from ..models import UserModel, RoleModel, UserBranchModel, BranchModel
+from ..models import UserModel, RoleModel, BranchModel
 from ..utils import (
     with_transaction, create_refresh_token, create_access_token, jwt_required,
     make_error, Permissions, GinoQueryHelper, make_list_response,
@@ -13,7 +13,7 @@ from ..utils import (
 )
 
 from .utils import (
-    is_username_unique, get_role_id, RoleNotExist, change_branches
+    is_username_unique, get_role_id, RoleNotExist
 )
 
 permissions = Permissions(app_name='users')
@@ -92,10 +92,9 @@ class Users(HTTPEndpoint):
             session=str(uuid4()),
             display_name=data['displayName'],
             email=data['email'],
-            role_id=role_id
+            role_id=role_id,
+            branch_id=data['branch_id']
         )
-        if 'branches' in data:
-            await change_branches(data['branches'], new_user.id, True)
 
         return make_response({'id': new_user.id})
 
@@ -109,7 +108,6 @@ class User(HTTPEndpoint):
         users = (
             await UserModel
             .outerjoin(RoleModel)
-            .outerjoin(UserBranchModel)
             .outerjoin(BranchModel)
             .select()
             .where(
@@ -118,7 +116,7 @@ class User(HTTPEndpoint):
             .gino.load(
                 UserModel.distinct(
                     UserModel.id
-                ).load(role=RoleModel, branches=BranchModel)
+                ).load(role=RoleModel, branch=BranchModel)
             ).all()
         )
         if users:
@@ -142,9 +140,6 @@ class User(HTTPEndpoint):
         except RoleNotExist:
             return make_error("Role doesn't exist", status_code=404)
 
-        if 'branches' in data:
-            await change_branches(data['branches'], user_id)
-
         values = {
             'display_name': data['displayName']
             if 'displayName' in data else None,
@@ -153,7 +148,8 @@ class User(HTTPEndpoint):
             'deactivated': data['deactivated']
             if 'deactivated' in data else None,
             'email': data['email'] if 'email' in data else None,
-            'role_id': role_id
+            'role_id': role_id,
+            'branch_id': data['branch_id'] if 'branch_id' in data else None
         }
 
         values = dict(filter(lambda item: item[1] is not None, values.items()))

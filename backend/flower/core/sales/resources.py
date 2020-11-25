@@ -59,8 +59,12 @@ class Sales(HTTPEndpoint):
             )
 
     @jwt_required
-    @permissions.required(action=permissions.actions.GET)
-    async def get(self, request):
+    @permissions.required(
+        action=permissions.actions.GET,
+        return_role=True,
+        return_user=True
+    )
+    async def get(self, request, user, role):
         query_params = request.query_params
 
         current_query = SaleModel.query
@@ -99,6 +103,14 @@ class Sales(HTTPEndpoint):
             )
             total_query = total_query.where(
                 SaleModel.date <= end_date
+            )
+
+        if role.name == 'branches':
+            current_query = current_query.where(
+                SaleModel.branch_id == user.branch_id
+            )
+            total_query = total_query.where(
+                SaleModel.branch_id == user.branch_id
             )
 
         current_query = GinoQueryHelper.pagination(

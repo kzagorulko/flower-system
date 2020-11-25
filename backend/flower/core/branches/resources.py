@@ -3,7 +3,7 @@ from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
 
 from ..database import db
-from ..models import BranchModel, UserModel, UserBranchModel
+from ..models import BranchModel, UserModel
 from ..utils import (
     jwt_required, make_error, with_transaction, Permissions, GinoQueryHelper,
     make_response, make_list_response, NO_CONTENT,
@@ -82,7 +82,6 @@ class Branch(HTTPEndpoint):
         branch_id = request.path_params['branch_id']
         branches_query = (
             BranchModel
-            .outerjoin(UserBranchModel)
             .outerjoin(UserModel)
             .select()
         )
