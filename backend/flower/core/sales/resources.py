@@ -143,24 +143,8 @@ class Sale(HTTPEndpoint):
     async def get(self, request):
         sale_id = request.path_params['sale_id']
 
-        sale = (
-            await SaleModel
-            .outerjoin(ProductModel)
-            .outerjoin(BranchModel)
-            .select()
-            .where(
-                SaleModel.id == sale_id
-            )
-            .gino.load(
-                SaleModel.distinct(
-                    SaleModel.id
-                ).load(product=ProductModel, branch=BranchModel)
-            ).first()
-        )
-
-        return make_response({
-            'items': sale.jsonify(for_card=True)
-        })
+        sale = await SaleModel.get(sale_id)
+        return make_response(sale.jsonify())
 
 
 @jwt_required

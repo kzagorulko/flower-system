@@ -65,19 +65,14 @@ class SaleModel(db.Model):
     def branch(self, value):
         self._branch = value
 
-    def jsonify(self, for_card=False):
+    def jsonify(self):
         from ..utils import convert_to_utc
         result = {
             'id': self.id,
             'value': self.value,
             'date': convert_to_utc(self.date).isoformat(),
+            'product_id': self.product_id,
+            'branch_id': self.branch_id,
         }
-
-        if for_card:
-            result['product'] = self.product.jsonify()
-            result['branch'] = self.branch.jsonify()
-        else:
-            result['product_id'] = self.product_id
-            result['branch_id'] = self.branch_id
 
         return result
