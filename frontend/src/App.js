@@ -32,6 +32,7 @@ import {
 import { SalesList, SalesCreate, SalesShow } from './components/SalesList';
 
 import './App.less';
+import { ContractList } from './components/Contracts';
 
 const App = () => (
   <Admin title="Flower System" dataProvider={dataProvider} authProvider={authProvider}>
@@ -105,6 +106,14 @@ const App = () => (
             create={permissions.sales.includes('create') ? SalesCreate : null}
             show={SalesShow}
             options={{ label: 'Продажи' }}
+          />
+        ) : null,
+      permissions.contracts
+        ? (
+          <Resource
+            name="contracts"
+            list={ContractList}
+            options={{ label: 'Контракты' }}
           />
         ) : null,
     ]}
