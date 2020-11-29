@@ -45,8 +45,8 @@ class Warehouses(HTTPEndpoint):
 
         current_query = (
             WarehouseModel
-                .outerjoin(ProductWarehouseModel)
-                .select()
+            .outerjoin(ProductWarehouseModel)
+            .select()
         )
         total_query = db.select([db.func.count(WarehouseModel.id)])
 
