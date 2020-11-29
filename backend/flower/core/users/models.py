@@ -30,14 +30,6 @@ class UserModel(db.Model):
     def role(self, value):
         self._role = value
 
-    @property
-    def branch(self):
-        return self._branch
-
-    @branch.setter
-    def branch(self, value):
-        self._branch = value
-
     def jsonify(self, for_card=False):
         result = {
             'id': self.id,
