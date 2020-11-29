@@ -14,7 +14,7 @@ import gino.dialects.asyncpg
 
 # revision identifiers, used by Alembic.
 revision = 'e7136da05c80'
-down_revision = 'f7f61b0fadff'
+down_revision = '182718a0a9ae'
 branch_labels = None
 depends_on = None
 

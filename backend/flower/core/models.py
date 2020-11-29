@@ -1,10 +1,10 @@
 from .roles.models import RoleModel
 from .users.models import UserModel
 from .sales.models import SaleModel
+from .branches.models import BranchModel
 from .products.models import ProductModel
-from .permissions.models import PermissionModel, PermissionAction
 from .providers.models import ProviderModel
-from .branches.models import BranchModel, UserBranchModel
+from .permissions.models import PermissionModel, PermissionAction
 from .requests.models import RequestCategoryModel, RequestModel, RequestStatus
 from .warehouses.models import WarehouseModel, ProductWarehouseModel
 from .purchases.models import PurchaseModel, PurchaseStatus
@@ -24,7 +24,6 @@ __all__ = [
     'PurchaseModel',
     'WarehouseModel',
     'PurchaseStatus',
-    'UserBranchModel',
     'PermissionModel',
     'PermissionAction',
     'RequestCategoryModel',

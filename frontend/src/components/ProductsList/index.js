@@ -10,11 +10,13 @@ import {
   SimpleForm,
   Create,
   Edit,
+  Show,
   TextInput,
   ImageField,
   ImageInput,
   Filter,
   usePermissions,
+  SimpleShowLayout,
 } from 'react-admin';
 
 const ProductListActions = () => {
@@ -61,6 +63,18 @@ export const ProductEdit = (props) => (
       <TextInput source="description" multiline />
     </SimpleForm>
   </Edit>
+);
+
+export const ProductShow = (props) => (
+  <Show {...props}>
+    <SimpleShowLayout>
+      <TextField source="id" />
+      <ImageField source="image_path" title="image" />
+      <TextField source="name" />
+      <TextField source="price" />
+      <TextField source="description" />
+    </SimpleShowLayout>
+  </Show>
 );
 
 export const ProductList = (props) => (
