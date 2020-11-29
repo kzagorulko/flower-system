@@ -13,11 +13,14 @@ class UserModel(db.Model):
     path_to_image = db.Column(db.String(120))
     session = db.Column(db.String(36), nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=True)
+    branch_id = db.Column(
+        db.Integer, db.ForeignKey('branches.id'), nullable=True
+    )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._role = None
-        self._branches = set()
+        self._branch = None
 
     @property
     def role(self):
@@ -26,14 +29,6 @@ class UserModel(db.Model):
     @role.setter
     def role(self, value):
         self._role = value
-
-    @property
-    def branches(self):
-        return self._branches
-
-    @branches.setter
-    def branches(self, value):
-        self._branches.add(value)
 
     def jsonify(self, for_card=False):
         result = {
@@ -46,9 +41,7 @@ class UserModel(db.Model):
             result['username'] = self.username
             result['email'] = self.email
             result['deactivated'] = self.deactivated
-            result['branches'] = [
-                branch.jsonify() for branch in self._branches
-            ]
+            result['branch_id'] = self.branch_id
 
         result['role'] = self.role.display_name if self.role else ''
 

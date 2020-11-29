@@ -1,8 +1,9 @@
+import json
 from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
 
 from ..database import db
-from ..models import BranchModel, UserModel, UserBranchModel
+from ..models import BranchModel, UserModel
 from ..utils import (
     jwt_required, make_error, with_transaction, Permissions, GinoQueryHelper,
     make_response, make_list_response, NO_CONTENT,
@@ -22,12 +23,21 @@ class Branches(HTTPEndpoint):
 
         query_params = request.query_params
 
-        if 'address' in query_params:
-            branches_query.where(
-                BranchModel.address.ilike(f'%{query_params["address"]}%')
+        if 'id' in query_params:
+            ids = json.loads(query_params['id'])
+            branches_query, total_query = GinoQueryHelper.in_(
+                branches_query,
+                total_query,
+                BranchModel.id,
+                ids
             )
-            total_query = total_query.where(
-                BranchModel.address.ilike(f'%{query_params["address"]}%')
+
+        if 'address' in query_params:
+            branches_query, total_query = GinoQueryHelper.search(
+                BranchModel.address,
+                query_params['address'],
+                branches_query,
+                total_query
             )
 
         branches_query = GinoQueryHelper.pagination(
@@ -37,7 +47,7 @@ class Branches(HTTPEndpoint):
             query_params,
             branches_query, {
                 'id': BranchModel.id,
-                'address': BranchModel.name,
+                'address': BranchModel.address,
             }
         )
 
@@ -76,7 +86,6 @@ class Branch(HTTPEndpoint):
         branch_id = request.path_params['branch_id']
         branches_query = (
             BranchModel
-            .outerjoin(UserBranchModel)
             .outerjoin(UserModel)
             .select()
         )

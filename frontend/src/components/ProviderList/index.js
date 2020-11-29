@@ -13,6 +13,9 @@ import {
   AutocompleteInput,
   Filter,
   usePermissions,
+  Show,
+  SimpleShowLayout,
+  EmailField,
 } from 'react-admin';
 
 const ProviderListActions = () => {
@@ -79,6 +82,20 @@ export const ProviderEdit = (props) => {
     </Edit>
   ) : null;
 };
+
+export const ProviderShow = (props) => (
+  <Show {...props}>
+    <SimpleShowLayout>
+      <TextField source="id" />
+      <TextField source="name" />
+      <TextField source="phone" />
+      <EmailField source="email" />
+      <TextField source="address" />
+      <TextField source="data" />
+      <TextField source="status" />
+    </SimpleShowLayout>
+  </Show>
+);
 
 export const ProviderList = (props) => (
   <List {...props} actions={<ProviderListActions />} filters={<ProviderFilter />}>
