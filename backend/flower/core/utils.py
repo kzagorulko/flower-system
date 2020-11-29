@@ -281,6 +281,13 @@ class GinoQueryHelper:
             total_query.where(field.ilike(f'%{value}%'))
         )
 
+    @staticmethod
+    def equal(field, value, current_query, total_query):
+        return (
+            current_query.where(field == value),
+            total_query.where(field == value)
+        )
+
 
 def make_error(description, status_code=400):
     return JSONResponse({
@@ -338,6 +345,10 @@ class UserExtractionError(Exception):
         self.status_code = status_code
 
 
+class ParamsMissingError(Exception):
+    pass
+
+
 def _encode_jwt(session, token_type):
     algorithm = config.JWT_ALGORITHM
     time_now = datetime.datetime.utcnow()
@@ -380,6 +391,17 @@ def make_list_response(items, total):
 
 def make_response(content):
     return JSONResponse(content)
+
+
+def validate_query_params(query, data):
+    errors = []
+
+    for param_key in data:
+        if param_key not in query:
+            errors.append(f"Parameter `{param_key}` required")
+
+    if errors:
+        raise ParamsMissingError("\n".join(errors), 400)
 
 
 NO_CONTENT = Response('', status_code=204)
