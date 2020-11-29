@@ -43,7 +43,11 @@ class Warehouses(HTTPEndpoint):
     async def get(self, request):
         query_params = request.query_params
 
-        current_query = WarehouseModel.query
+        current_query = (
+            WarehouseModel
+                .outerjoin(ProductWarehouseModel)
+                .select()
+        )
         total_query = db.select([db.func.count(WarehouseModel.id)])
 
         if 'address' in query_params:
@@ -74,7 +78,11 @@ class Warehouses(HTTPEndpoint):
         )
 
         total = await total_query.gino.scalar()
-        items = await current_query.gino.all()
+        items = await current_query.gino.load(
+            WarehouseModel.distinct(WarehouseModel.id).load(
+                products=ProductWarehouseModel
+            )
+        ).all()
 
         return make_list_response(
             [item.jsonify() for item in items],
@@ -92,8 +100,7 @@ class Warehouse(HTTPEndpoint):
             WarehouseModel
             .outerjoin(ProductWarehouseModel)
             .select()
-        )
-        current_query = current_query.where(
+        ).where(
             WarehouseModel.id == warehouse_id
         )
 
@@ -124,7 +131,7 @@ class Warehouse(HTTPEndpoint):
             await warehouse.update(address=data['address']).apply()
 
         if 'max_value' in data:
-            await warehouse.update(address=data['max_value']).apply()
+            await warehouse.update(max_value=data['max_value']).apply()
 
         if 'products' in data:
             await change_products(data['products'], warehouse_id)

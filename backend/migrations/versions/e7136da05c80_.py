@@ -38,7 +38,8 @@ def upgrade():
     sa.Column('product_id', sa.Integer(), nullable=False),
     sa.Column('warehouse_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(tuple(['product_id']), ['products.id'], ),
-    sa.ForeignKeyConstraint(tuple(['warehouse_id']), ['warehouses.id'], )
+    sa.ForeignKeyConstraint(tuple(['warehouse_id']), ['warehouses.id'], ),
+    sa.PrimaryKeyConstraint('id')
     )
     t_purchases = op.create_table('purchases',
     sa.Column('id', sa.Integer(), nullable=False),

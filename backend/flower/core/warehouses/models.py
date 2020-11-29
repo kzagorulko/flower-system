@@ -1,3 +1,5 @@
+from functools import reduce
+
 from ..database import db
 
 
@@ -27,10 +29,20 @@ class WarehouseModel(db.Model):
             'max_value': self.max_value,
         }
 
+        if self.products:
+            left_amount = self.max_value - reduce(
+                lambda el_prev, el: el_prev.value + el.value,
+                [product.value for product in self.products]
+            )
+        else:
+            left_amount = self.max_value
+
+        result['left_amount'] = left_amount
+
         if for_card:
             result['products'] = [
                 {
-                    "product_id": product.product_id,
+                    "id": product.product_id,
                     "value": product.value
                 }
                 for product in self.products

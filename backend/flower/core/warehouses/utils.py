@@ -1,5 +1,3 @@
-from sqlalchemy.dialects.postgresql import insert
-
 from ..database import db
 from ..models import ProductWarehouseModel
 
@@ -44,6 +42,4 @@ async def change_products(products, warehouse_id, is_create=False):
                     })
 
             if result:
-                await insert(ProductWarehouseModel.__table__).values(
-                    result
-                ).on_conflict_do_nothing().gino.scalar()
+                await ProductWarehouseModel.insert().gino.all(result)
