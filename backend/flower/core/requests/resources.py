@@ -136,25 +136,25 @@ class Requests(HTTPEndpoint):
 
         if 'view' in query_params:
             if query_params['view'] == 'INBOX':
-                requests_query = requests_query.where(
-                    RequestModel.department_id == user.role_id
-                )
-                total_query = total_query.where(
-                    RequestModel.department_id == user.role_id
+                requests_query, total_query = GinoQueryHelper.equal(
+                    RequestModel.department_id,
+                    user.role_id,
+                    requests_query,
+                    total_query
                 )
             elif query_params['view'] == 'OUTBOX':
-                requests_query = requests_query.where(
-                    RequestModel.creator_id == user.id
-                )
-                total_query = total_query.where(
-                    RequestModel.creator_id == user.id
+                requests_query, total_query = GinoQueryHelper.equal(
+                    RequestModel.creator_id,
+                    user.id,
+                    requests_query,
+                    total_query
                 )
             elif query_params['view'] == 'EXECUTOR':
-                requests_query = requests_query.where(
-                    RequestModel.executor_id == user.id
-                )
-                total_query = total_query.where(
-                    RequestModel.executor_id == user.id
+                requests_query, total_query = GinoQueryHelper.equal(
+                    RequestModel.executor_id,
+                    user.id,
+                    requests_query,
+                    total_query
                 )
 
         requests_query = GinoQueryHelper.pagination(

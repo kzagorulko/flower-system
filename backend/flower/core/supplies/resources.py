@@ -106,6 +106,23 @@ class Supplies(HTTPEndpoint):
                 total_query
             )
 
+        if 'startDate' in query_params:
+            current_query, total_query = GinoQueryHelper.month_year_cond(
+                SupplyModel.date,
+                query_params['startDate'],
+                GinoQueryHelper.GTE,
+                current_query,
+                total_query
+            )
+        if 'endDate' in query_params:
+            current_query, total_query = GinoQueryHelper.month_year_cond(
+                SupplyModel.date,
+                query_params['endDate'],
+                GinoQueryHelper.LTE,
+                current_query,
+                total_query
+            )
+
         current_query = GinoQueryHelper.pagination(
             query_params, current_query
         )

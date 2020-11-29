@@ -1,4 +1,4 @@
-"""empty message
+"""Warehouses, Purchases, Supplies
 
 Revision ID: e7136da05c80
 Revises: f7f61b0fadff
@@ -37,8 +37,8 @@ def upgrade():
     sa.Column('value', sa.Float(), nullable=False),
     sa.Column('product_id', sa.Integer(), nullable=False),
     sa.Column('warehouse_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['product_id'], ['products.id'], ),
-    sa.ForeignKeyConstraint(['warehouse_id'], ['warehouses.id'], )
+    sa.ForeignKeyConstraint(tuple(['product_id']), ['products.id'], ),
+    sa.ForeignKeyConstraint(tuple(['warehouse_id']), ['warehouses.id'], )
     )
     t_purchases = op.create_table('purchases',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -47,8 +47,8 @@ def upgrade():
     sa.Column('date', sa.DateTime(timezone=True), nullable=False),
     sa.Column('product_id', sa.Integer(), nullable=True),
     sa.Column('warehouse_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['product_id'], ['products.id'], ),
-    sa.ForeignKeyConstraint(['warehouse_id'], ['warehouses.id'], ),
+    sa.ForeignKeyConstraint(tuple(['product_id']), ['products.id'], ),
+    sa.ForeignKeyConstraint(tuple(['warehouse_id']), ['warehouses.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     t_supplies = op.create_table('supplies',
@@ -58,9 +58,9 @@ def upgrade():
     sa.Column('product_id', sa.Integer(), nullable=True),
     sa.Column('warehouse_id', sa.Integer(), nullable=True),
     sa.Column('branch_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['branch_id'], ['branches.id'], ),
-    sa.ForeignKeyConstraint(['product_id'], ['products.id'], ),
-    sa.ForeignKeyConstraint(['warehouse_id'], ['warehouses.id'], ),
+    sa.ForeignKeyConstraint(tuple(['branch_id']), ['branches.id'], ),
+    sa.ForeignKeyConstraint(tuple(['product_id']), ['products.id'], ),
+    sa.ForeignKeyConstraint(tuple(['warehouse_id']), ['warehouses.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
@@ -72,13 +72,17 @@ def upgrade():
            'id': 1,
            'address': 'г. Москва, ул. Пушкина, д. 30',
            'max_value': 567
-        }]),
+        }])
+    )
+    connection.execute(
         sa.insert(t_product_in_warehouses).values([{
             'id': 1,
             'product_id': 1,
             'warehouse_id': 1,
             'value': 300
-        }]),
+        }])
+    )
+    connection.execute(
         sa.insert(t_purchases).values([{
             'id': 1,
             'product_id': 1,
@@ -86,7 +90,9 @@ def upgrade():
             'status': 'NEW',
             'value': 100,
             'date': datetime.now().astimezone(utc)
-        }]),
+        }])
+    )
+    connection.execute(
         sa.insert(t_supplies).values([{
             'id': 1,
             'product_id': 1,
@@ -94,7 +100,7 @@ def upgrade():
             'branch_id': 1,
             'value': 100,
             'date': datetime.now().astimezone(utc)
-        }]),
+        }])
     )
 
 

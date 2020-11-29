@@ -84,16 +84,33 @@ class Purchases(HTTPEndpoint):
         total_query = db.select([db.func.count(PurchaseModel.id)])
 
         if 'product_id' in query_params:
-            current_query, total_query = GinoQueryHelper.search(
+            current_query, total_query = GinoQueryHelper.equal(
                 PurchaseModel.product_id,
-                query_params['product_id'],
+                int(query_params['product_id']),
                 current_query,
                 total_query
             )
         if 'warehouse_id' in query_params:
-            current_query, total_query = GinoQueryHelper.search(
+            current_query, total_query = GinoQueryHelper.equal(
                 PurchaseModel.warehouse_id,
-                query_params['warehouse_id'],
+                int(query_params['warehouse_id']),
+                current_query,
+                total_query
+            )
+
+        if 'startDate' in query_params:
+            current_query, total_query = GinoQueryHelper.month_year_cond(
+                PurchaseModel.date,
+                query_params['startDate'],
+                GinoQueryHelper.GTE,
+                current_query,
+                total_query
+            )
+        if 'endDate' in query_params:
+            current_query, total_query = GinoQueryHelper.month_year_cond(
+                PurchaseModel.date,
+                query_params['endDate'],
+                GinoQueryHelper.LTE,
                 current_query,
                 total_query
             )

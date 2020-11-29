@@ -72,45 +72,42 @@ class Sales(HTTPEndpoint):
         total_query = db.select([db.func.count(SaleModel.id)])
 
         if 'product_id' in query_params:
-            current_query = current_query.where(
-                SaleModel.product_id == int(query_params['product_id'])
-            )
-            total_query = total_query.where(
-                SaleModel.product_id == int(query_params['product_id'])
+            current_query, total_query = GinoQueryHelper.equal(
+                SaleModel.product_id,
+                int(query_params['product_id']),
+                current_query,
+                total_query
             )
         if 'branch_id' in query_params:
-            current_query = current_query.where(
-                SaleModel.branch_id == int(query_params['branch_id'])
-            )
-            total_query = total_query.where(
-                SaleModel.branch_id == int(query_params['branch_id'])
+            current_query, total_query = GinoQueryHelper.equal(
+                SaleModel.branch_id,
+                int(query_params['branch_id']),
+                current_query,
+                total_query
             )
         if 'startDate' in query_params:
-            year, month = query_params['startDate'].split('-')[:2]
-            start_date = date(int(year), int(month), 1)
-            current_query = current_query.where(
-                SaleModel.date >= start_date
-            )
-            total_query = total_query.where(
-                SaleModel.date >= start_date
+            current_query, total_query = GinoQueryHelper.month_year_cond(
+                SaleModel.date,
+                query_params['startDate'],
+                GinoQueryHelper.GTE,
+                current_query,
+                total_query
             )
         if 'endDate' in query_params:
-            year, month = query_params['endDate'].split('-')[:2]
-            num_days = monthrange(int(year), int(month))[1]
-            end_date = date(int(year), int(month), num_days)
-            current_query = current_query.where(
-                SaleModel.date <= end_date
-            )
-            total_query = total_query.where(
-                SaleModel.date <= end_date
+            current_query, total_query = GinoQueryHelper.month_year_cond(
+                SaleModel.date,
+                query_params['endDate'],
+                GinoQueryHelper.LTE,
+                current_query,
+                total_query
             )
 
         if role.name == 'branches':
-            current_query = current_query.where(
-                SaleModel.branch_id == user.branch_id
-            )
-            total_query = total_query.where(
-                SaleModel.branch_id == user.branch_id
+            current_query, total_query = GinoQueryHelper.equal(
+                SaleModel.branch_id,
+                user.branch_id,
+                current_query,
+                total_query
             )
 
         current_query = GinoQueryHelper.pagination(

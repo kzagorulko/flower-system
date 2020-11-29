@@ -239,6 +239,9 @@ def convert_to_utc(dt):
 
 
 class GinoQueryHelper:
+    LTE = "<="
+    GTE = ">="
+
     @staticmethod
     def pagination(query_params, current_query):
         if 'page' in query_params and 'perPage' in query_params:
@@ -289,6 +292,26 @@ class GinoQueryHelper:
             current_query.where(field.in_(values)),
             total_query.where(field.in_(values))
         )
+
+    @staticmethod
+    def month_year_cond(field, value, c_type, current_query, total_query):
+        custom_date = GinoQueryHelper.prepare_custom_date(value)
+
+        if c_type == GinoQueryHelper.LTE:
+            return (
+                current_query.where(field <= custom_date),
+                total_query.where(field <= custom_date)
+            )
+        else:
+            return (
+                current_query.where(field >= custom_date),
+                total_query.where(field >= custom_date)
+            )
+
+    @staticmethod
+    def prepare_custom_date(date_str):
+        year, month = date_str.split('-')[:2]
+        return datetime.date(int(year), int(month), 1)
 
 
 def make_error(description, status_code=400):
