@@ -149,10 +149,7 @@ class Sale(HTTPEndpoint):
             return make_error(
                 f'Sale with id {sale_id} not found', status_code=404
             )
-
-        return make_response({
-            'items': sale.jsonify(for_card=True)
-        })
+        return make_response(sale.jsonify())
 
 
 @jwt_required
