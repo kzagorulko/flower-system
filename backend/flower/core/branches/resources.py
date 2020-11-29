@@ -25,15 +25,19 @@ class Branches(HTTPEndpoint):
 
         if 'id' in query_params:
             ids = json.loads(query_params['id'])
-            branches_query = branches_query.where(BranchModel.id.in_(ids))
-            total_query = total_query.where(BranchModel.id.in_(ids))
+            branches_query, total_query = GinoQueryHelper.in_(
+                branches_query,
+                total_query,
+                BranchModel.id,
+                ids
+            )
 
         if 'address' in query_params:
-            branches_query.where(
-                BranchModel.address.ilike(f'%{query_params["address"]}%')
-            )
-            total_query = total_query.where(
-                BranchModel.address.ilike(f'%{query_params["address"]}%')
+            branches_query, total_query = GinoQueryHelper.search(
+                BranchModel.address,
+                query_params['address'],
+                branches_query,
+                total_query
             )
 
         branches_query = GinoQueryHelper.pagination(

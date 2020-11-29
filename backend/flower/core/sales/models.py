@@ -48,23 +48,6 @@ class SaleModel(db.Model):
     def date_month_year(self):
         return tuple_(self.date_year, self.date_month)
 
-    # свойства для подгрузки продукта и филиала
-    @property
-    def product(self):
-        return self._product
-
-    @product.setter
-    def product(self, value):
-        self._product = value
-
-    @property
-    def branch(self):
-        return self._branch
-
-    @branch.setter
-    def branch(self, value):
-        self._branch = value
-
     def jsonify(self, for_card=False):
         from ..utils import convert_to_utc
         result = {

@@ -143,20 +143,12 @@ class Sale(HTTPEndpoint):
     async def get(self, request):
         sale_id = request.path_params['sale_id']
 
-        sale = (
-            await SaleModel
-            .outerjoin(ProductModel)
-            .outerjoin(BranchModel)
-            .select()
-            .where(
-                SaleModel.id == sale_id
+        sale = await SaleModel.get(sale_id)
+
+        if not sale:
+            return make_error(
+                f'Sale with id {sale_id} not found', status_code=404
             )
-            .gino.load(
-                SaleModel.distinct(
-                    SaleModel.id
-                ).load(product=ProductModel, branch=BranchModel)
-            ).first()
-        )
 
         return make_response({
             'items': sale.jsonify(for_card=True)

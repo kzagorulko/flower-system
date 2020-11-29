@@ -52,8 +52,12 @@ class Products(HTTPEndpoint):
 
         if 'id' in query_params:
             ids = json.loads(query_params['id'])
-            current_query = current_query.where(ProductModel.id.in_(ids))
-            total_query = total_query.where(ProductModel.id.in_(ids))
+            current_query, total_query = GinoQueryHelper.in_(
+                current_query,
+                total_query,
+                ProductModel.id,
+                ids
+            )
 
         if 'name' in query_params:
             current_query = current_query.where(

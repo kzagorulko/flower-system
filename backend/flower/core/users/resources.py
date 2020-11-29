@@ -40,15 +40,11 @@ class Users(HTTPEndpoint):
             )
 
         if 'display_name' in query_params:
-            users_query = users_query.where(
-                UserModel.display_name.ilike(
-                    f'%{query_params["display_name"]}%'
-                )
-            )
-            total_query = total_query.where(
-                UserModel.display_name.ilike(
-                    f'%{query_params["display_name"]}%'
-                )
+            users_query, total_query = GinoQueryHelper.search(
+                UserModel.display_name,
+                query_params['display_name'],
+                users_query,
+                total_query
             )
 
         users_query = GinoQueryHelper.pagination(

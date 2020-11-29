@@ -276,6 +276,13 @@ class GinoQueryHelper:
             total_query.where(field.ilike(f'%{value}%'))
         )
 
+    @staticmethod
+    def in_(current_query, total_query, field, values):
+        return (
+            current_query.where(field.in_(values)),
+            total_query.where(field.in_(values))
+        )
+
 
 def make_error(description, status_code=400):
     return JSONResponse({
