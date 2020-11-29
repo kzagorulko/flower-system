@@ -28,11 +28,11 @@ class Categories(HTTPEndpoint):
         total_query = db.select([db.func.count(RequestCategoryModel.id)])
 
         if 'name' in query_params:
-            query = query.where(
-                RequestCategoryModel.name.ilike(f'%{query_params["name"]}%')
-            )
-            total_query = total_query.where(
-                RequestCategoryModel.name.ilike(f'%{query_params["name"]}%')
+            query, total_query = GinoQueryHelper.search(
+                RequestCategoryModel.name,
+                query_params['name'],
+                query,
+                total_query
             )
 
         query = GinoQueryHelper.pagination(

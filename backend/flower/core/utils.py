@@ -13,7 +13,7 @@ from starlette.responses import JSONResponse, Response
 from .. import config
 from .database import db
 from .models import (
-    UserModel, RoleModel, PermissionModel, UserBranchModel, PermissionAction,
+    UserModel, RoleModel, PermissionModel, PermissionAction,
 )
 
 
@@ -162,12 +162,7 @@ class Permissions:
 
 
 async def is_user_in_branch(user, branch) -> bool:
-    user_branch = await UserBranchModel.query.where(
-        (UserBranchModel.branch_id == branch.id) &
-        (UserBranchModel.user_id == user.id)
-    ).gino.first()
-
-    return bool(user_branch)
+    return user.branch_id == branch.id
 
 
 async def is_user_role_in(user, role_names) -> bool:
@@ -279,6 +274,13 @@ class GinoQueryHelper:
         return (
             current_query.where(field.ilike(f'%{value}%')),
             total_query.where(field.ilike(f'%{value}%'))
+        )
+
+    @staticmethod
+    def in_(current_query, total_query, field, values):
+        return (
+            current_query.where(field.in_(values)),
+            total_query.where(field.in_(values))
         )
 
 

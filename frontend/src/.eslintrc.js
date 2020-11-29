@@ -40,6 +40,6 @@ module.exports = {
     ],
     'react/prop-types': 'off',
     'react/jsx-props-no-spreading': 'off',
-    'react-hooks/exhaustive-deps': 'warn',
+    'react-hooks/exhaustive-deps': 'off',
   },
 };

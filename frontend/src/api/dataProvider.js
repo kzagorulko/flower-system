@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {
   request,
   prepareImage,
@@ -29,18 +28,28 @@ export default {
       };
     }),
 
-  getOne: (resource, params) => {
-    console.log(params);
-    return request('GET', prepareUrl(`/${resource}/${params.id}`))
+  getOne: (resource, params) => request('GET', prepareUrl(`/${resource}/${params.id}`))
+    .then((resp) => {
+      const { data } = resp;
+      return {
+        data,
+      };
+    }),
+
+  getMany: (resource, params) => {
+    const query = `?id=[${params.ids.toString()}]`;
+    return request('GET', prepareUrl(`/${resource}/${query}`))
       .then((resp) => {
-        const { data } = resp;
+        const { total } = resp.data;
         return {
-          data,
+          data: resp.data.items.map((value) => ({
+            id: value.id,
+            ...value,
+          })),
+          total,
         };
       });
   },
-
-  getMany: () => {},
 
   getManyReference: () => {},
 
