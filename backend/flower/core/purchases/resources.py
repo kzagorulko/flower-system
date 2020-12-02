@@ -12,7 +12,7 @@ from ..utils import (
 )
 from ..models import (
     WarehouseModel, ProductModel, ProductWarehouseModel,
-    PurchaseStatus as Status, PurchaseModel
+    PurchaseStatus as Status, PurchaseModel, SupplyModel
 )
 
 permissions = Permissions(app_name='purchases')
@@ -28,11 +28,13 @@ class Purchases(HTTPEndpoint):
         try:
             check_missing_params(
                 data,
-                ['value', 'product_id', 'warehouse_id', 'date']
+                ['value', 'product_id', 'warehouse_id', 'date', 'address']
             )
 
             product = await ProductModel.get(data['product_id'])
             warehouse = await WarehouseModel.get(data['warehouse_id'])
+
+            target_date = datetime.strptime(data['date'], '%Y-%m-%d')
 
             if not product:
                 raise Exception('Product not found')
@@ -49,8 +51,11 @@ class Purchases(HTTPEndpoint):
             purchases_in_progress = await db.select(
                 [db.func.sum(PurchaseModel.value)]
             ).where(
-                (PurchaseModel.status == Status.NEW) |
-                (PurchaseModel.status == Status.IN_PROGRESS)
+                (
+                    (PurchaseModel.status == Status.NEW) |
+                    (PurchaseModel.status == Status.IN_PROGRESS)
+                ) &
+                (PurchaseModel.date < target_date)
             ).gino.scalar() or 0
 
             if (
@@ -65,7 +70,8 @@ class Purchases(HTTPEndpoint):
                 product_id=product.id,
                 warehouse_id=warehouse.id,
                 status=Status.NEW,
-                date=datetime.now().astimezone(utc),
+                address=data['address'],
+                date=target_date.astimezone(utc),
             )
 
             return make_response({'id': purchase.id})
