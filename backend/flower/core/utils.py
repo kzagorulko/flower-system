@@ -6,6 +6,7 @@ from pytz import utc
 from uuid import uuid4
 from functools import wraps
 from base64 import b64decode
+from calendar import monthrange
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
@@ -239,8 +240,8 @@ def convert_to_utc(dt):
 
 
 class GinoQueryHelper:
-    LTE = "<="
-    GTE = ">="
+    LTE = '<='
+    GTE = '>='
 
     @staticmethod
     def pagination(query_params, current_query):
@@ -311,7 +312,10 @@ class GinoQueryHelper:
     @staticmethod
     def prepare_custom_date(date_str):
         year, month = date_str.split('-')[:2]
-        return datetime.date(int(year), int(month), 1)
+        year = int(year)
+        month = int(month)
+        # последний день полученного месяца
+        return datetime.date(year, month, monthrange(year, month)[1])
 
 
 def make_error(description, status_code=400):
@@ -418,7 +422,7 @@ def make_response(content):
     return JSONResponse(content)
 
 
-def validate_query_params(query, data):
+def check_missing_params(query, data):
     errors = []
 
     for param_key in data:

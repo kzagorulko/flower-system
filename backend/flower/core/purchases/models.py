@@ -8,20 +8,13 @@ class PurchaseStatus(Enum):
     CANCELLED = 'CANCELLED'
     DONE = 'DONE'
 
-    def get_title(self):
-        return {
-            'NEW': 'Новая',
-            'IN_PROGRESS': 'В работе',
-            'CANCELLED': 'Отменена',
-            'DONE': 'Завершена',
-        }[self.name]
-
 
 class PurchaseModel(db.Model):
     __tablename__ = 'purchases'
 
     id = db.Column(db.Integer, primary_key=True)
     value = db.Column(db.Float, nullable=False)
+    address = db.Column(db.String(100), unique=True, nullable=False)
     status = db.Column(
         db.Enum(PurchaseStatus), nullable=False, default=PurchaseStatus.NEW
     )
@@ -34,10 +27,13 @@ class PurchaseModel(db.Model):
     )
 
     def jsonify(self):
+        from ..utils import convert_to_utc
         return {
             'id': self.id,
             'value': self.value,
-            'status': self.status.get_title(),
+            'address': self.address,
+            'status': self.status.name,
             'product_id': self.product_id,
-            'warehouse_id': self.warehouse_id
+            'warehouse_id': self.warehouse_id,
+            'date': convert_to_utc(self.date).isoformat(),
         }

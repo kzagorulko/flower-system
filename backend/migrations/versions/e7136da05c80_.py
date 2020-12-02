@@ -43,6 +43,7 @@ def upgrade():
     )
     t_purchases = op.create_table('purchases',
     sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('address', sa.String(100), nullable=False),
     sa.Column('value', sa.Float(), nullable=False),
     sa.Column('status', purchase_status_type, nullable=False),
     sa.Column('date', sa.DateTime(timezone=True), nullable=False),
@@ -90,6 +91,7 @@ def upgrade():
             'warehouse_id': 1,
             'status': 'NEW',
             'value': 100,
+            'address': 'м. Сокольники',
             'date': datetime.now().astimezone(utc)
         }])
     )

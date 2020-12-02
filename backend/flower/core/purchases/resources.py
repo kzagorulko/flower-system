@@ -6,7 +6,7 @@ from datetime import datetime
 
 from ..database import db
 from ..utils import (
-    validate_query_params,
+    check_missing_params,
     with_transaction, jwt_required, make_response, make_list_response,
     make_error, Permissions, GinoQueryHelper, NO_CONTENT, PermissionAction
 )
@@ -26,9 +26,9 @@ class Purchases(HTTPEndpoint):
         data = await request.json()
 
         try:
-            validate_query_params(
+            check_missing_params(
                 data,
-                ['value', 'product_id', 'warehouse_id']
+                ['value', 'product_id', 'warehouse_id', 'date']
             )
 
             product = await ProductModel.get(data['product_id'])
@@ -143,9 +143,7 @@ class Purchase(HTTPEndpoint):
     async def get(request):
         purchase_id = request.path_params['purchase_id']
 
-        purchase = await PurchaseModel.query.where(
-            PurchaseModel.id == purchase_id
-        ).gino.first()
+        purchase = await PurchaseModel.get(purchase_id)
 
         if purchase:
             return make_response(purchase.jsonify())

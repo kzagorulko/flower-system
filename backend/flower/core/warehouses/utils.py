@@ -3,8 +3,8 @@ from ..models import ProductWarehouseModel
 
 
 async def change_products(products, warehouse_id, is_create=False):
-    products = (list(products))
-    product_ids = [product["id"] for product in products]
+    products = products
+    product_ids = [product['id'] for product in products]
 
     if len(products) == 0:
         await ProductWarehouseModel.delete.where(

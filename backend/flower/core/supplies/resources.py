@@ -6,7 +6,7 @@ from datetime import datetime
 
 from ..database import db
 from ..utils import (
-    validate_query_params,
+    check_missing_params,
     with_transaction, jwt_required, make_response, make_list_response,
     make_error, Permissions, GinoQueryHelper
 )
@@ -26,7 +26,7 @@ class Supplies(HTTPEndpoint):
         data = await request.json()
 
         try:
-            validate_query_params(
+            check_missing_params(
                 data,
                 ['value', 'product_id', 'warehouse_id', 'branch_id']
             )
@@ -151,9 +151,7 @@ class Supply(HTTPEndpoint):
     async def get(request):
         supply_id = request.path_params['supply_id']
 
-        supply = await SupplyModel.query.where(
-            SupplyModel.id == supply_id
-        ).gino.first()
+        supply = await SupplyModel.get(supply_id)
 
         if supply:
             return make_response(supply.jsonify())

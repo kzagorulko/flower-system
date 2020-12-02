@@ -18,10 +18,12 @@ class SupplyModel(db.Model):
     )
 
     def jsonify(self):
+        from ..utils import convert_to_utc
         return {
             'id': self.id,
             'value': self.value,
             'product_id': self.product_id,
             'warehouse_id': self.warehouse_id,
             'branch_id': self.branch_id,
+            'date': convert_to_utc(self.date).isoformat(),
         }

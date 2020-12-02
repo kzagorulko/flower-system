@@ -47,19 +47,15 @@ export const WarehouseCreate = (props) => (
   </Create>
 );
 
-export const WarehouseEdit = (props) => {
-  const { loaded } = usePermissions('/warehouses');
-
-  return loaded ? (
-    <Edit undoable={false} {...props}>
-      <SimpleForm>
-        <TextInput disabled source="id" />
-        <TextInput source="address" />
-        <NumberInput source="max_value" />
-      </SimpleForm>
-    </Edit>
-  ) : null;
-};
+export const WarehouseEdit = (props) => (
+  <Edit undoable={false} {...props}>
+    <SimpleForm>
+      <TextInput disabled source="id" />
+      <TextInput source="address" />
+      <NumberInput source="max_value" />
+    </SimpleForm>
+  </Edit>
+);
 
 export const WarehouseShow = (props) => (
   <Show {...props}>

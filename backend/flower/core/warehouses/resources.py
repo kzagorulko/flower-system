@@ -3,7 +3,7 @@ from starlette.endpoints import HTTPEndpoint
 
 from ..database import db
 from ..utils import (
-    validate_query_params,
+    check_missing_params,
     with_transaction, jwt_required, make_response, make_list_response,
     make_error, Permissions, GinoQueryHelper, NO_CONTENT,
 )
@@ -21,7 +21,7 @@ class Warehouses(HTTPEndpoint):
         data = await request.json()
 
         try:
-            validate_query_params(data, ['address', 'max_value'])
+            check_missing_params(data, ['address', 'max_value'])
 
             warehouse = await WarehouseModel.create(
                 address=data['address'],
@@ -57,13 +57,6 @@ class Warehouses(HTTPEndpoint):
                 current_query,
                 total_query
             )
-        if 'max_value' in query_params:
-            current_query, total_query = GinoQueryHelper.search(
-                WarehouseModel.product_id,
-                query_params['max_value'],
-                current_query,
-                total_query
-            )
 
         current_query = GinoQueryHelper.pagination(
             query_params, current_query
@@ -73,7 +66,7 @@ class Warehouses(HTTPEndpoint):
             current_query, {
                 'id': WarehouseModel.id,
                 'address': WarehouseModel.address,
-                'max_value': WarehouseModel.max_value
+                'max_value': WarehouseModel.max_value,
             }
         )
 
@@ -127,11 +120,13 @@ class Warehouse(HTTPEndpoint):
                 f'Warehouse with id {warehouse_id} not found', status_code=404
             )
 
-        if 'address' in data:
-            await warehouse.update(address=data['address']).apply()
+        values = dict()
+        values['max_value'] = (
+            data['max_value'] if 'max_value' in data else None
+        )
+        values['address'] = data['address'] if 'address' in data else None
 
-        if 'max_value' in data:
-            await warehouse.update(max_value=data['max_value']).apply()
+        await warehouse.update(**values).apply()
 
         if 'products' in data:
             await change_products(data['products'], warehouse_id)
