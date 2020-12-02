@@ -12,7 +12,7 @@ from ..utils import (
 )
 from ..models import (
     WarehouseModel, ProductModel, ProductWarehouseModel,
-    PurchaseStatus as Status, PurchaseModel, SupplyModel
+    PurchaseStatus as Status, PurchaseModel
 )
 
 permissions = Permissions(app_name='purchases')
