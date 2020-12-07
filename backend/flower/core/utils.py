@@ -296,7 +296,7 @@ class GinoQueryHelper:
 
     @staticmethod
     def month_year_cond(field, value, c_type, current_query, total_query):
-        custom_date = GinoQueryHelper.prepare_custom_date(value)
+        custom_date = GinoQueryHelper.prepare_custom_date(value, c_type)
 
         if c_type == GinoQueryHelper.LTE:
             return (
@@ -310,12 +310,20 @@ class GinoQueryHelper:
             )
 
     @staticmethod
-    def prepare_custom_date(date_str):
-        year, month = date_str.split('-')[:2]
-        year = int(year)
-        month = int(month)
-        # последний день полученного месяца
-        return datetime.date(year, month, monthrange(year, month)[1])
+    def prepare_custom_date(date_str, c_type=None):
+        date_list = date_str.split('-')
+
+        year = int(date_list[0])
+        month = int(date_list[1])
+
+        if len(date_list) > 2:
+            day = int(date_list[2])
+        elif not c_type or c_type == GinoQueryHelper.GTE:
+            day = 1
+        else:
+            day = monthrange(year, month)[1]
+
+        return datetime.date(year, month, day)
 
 
 def make_error(description, status_code=400):
