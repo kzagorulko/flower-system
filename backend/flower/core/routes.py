@@ -9,6 +9,9 @@ from .providers.resources import routes as provider_routes
 from .requests.resources import routes as request_routes
 from .products.resources import routes as product_routes
 from .sales.resources import routes as sales_routes
+from .warehouses.resources import routes as warehouses_routes
+from .purchases.resources import routes as purchases_routes
+from .supplies.resources import routes as supplies_routes
 from .utils import make_response
 
 
@@ -27,4 +30,7 @@ routes = [
     Mount('/requests', routes=request_routes),
     Mount('/branches', routes=branches_routes),
     Mount('/providers', routes=provider_routes),
+    Mount('/purchases', routes=purchases_routes),
+    Mount('/warehouses', routes=warehouses_routes),
+    Mount('/supplies', routes=supplies_routes),
 ]
