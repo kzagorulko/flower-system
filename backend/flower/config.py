@@ -52,3 +52,19 @@ ADMIN_DISPLAY_NAME = config('ADMIN_DISPLAY_NAME')
 ADMIN_EMAIL = config('ADMIN_EMAIL')
 
 MEDIA_FOLDER = config('MEDIA_FOLDER')
+
+TESTING = config('TESTING', cast=bool, default=False)
+
+if TESTING:
+    DB_USER = 'flower_test_user'
+    DB_PASSWORD = 'flower_test_user'
+    DB_DATABASE = 'flower_test'
+
+    DB_URL = URL(
+        drivername='postgres',
+        host=DB_HOST,
+        port=DB_PORT,
+        username=DB_USER,
+        password=DB_PASSWORD,
+        database=DB_DATABASE
+    )
