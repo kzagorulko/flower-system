@@ -23,10 +23,11 @@ jobs:
         run: |
           flake8
         working-directory: "./backend/"
-      - name: Test with coverage and pytest
+      - name: Setup postgres
         uses: harmon758/postgresql-action@v1
         with:
           postgresql version: '13'
+      - name: Tests with coverage and pytest
         run: |
           make test-ci
         working-directory: "./backend/"
