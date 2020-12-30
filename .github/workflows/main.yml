@@ -39,9 +39,17 @@ jobs:
         working-directory: "./backend/"
       - name: Test with coverage and pytest
         run: |
+          sudo service postgresql status
           sudo service postgresql start
+          sudo service postgresql status
+          pg_isready
           make test
         working-directory: "./backend/"
+        env:
+          # The hostname used to communicate with the PostgreSQL service container
+          POSTGRES_HOST: postgres
+          # The default PostgreSQL port
+          POSTGRES_PORT: 5432
   check-frontend:
 
     runs-on: ubuntu-latest
