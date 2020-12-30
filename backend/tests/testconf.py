@@ -1,11 +1,10 @@
 import pytest
+
 from alembic import command
 from alembic.config import Config
 from starlette.testclient import TestClient
 
-
-from flower.core.database import db
-from flower.application import create_app
+from flower import create_app, db
 from flower.config import DB_URL, ADMIN_USERNAME, ADMIN_PASSWORD
 
 
