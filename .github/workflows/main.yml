@@ -38,6 +38,7 @@ jobs:
         working-directory: "./backend/"
       - name: Test with coverage and pytest
         run: |
+          sudo service postgresql start
           make test
         working-directory: "./backend/"
   check-frontend:
