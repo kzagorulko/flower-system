@@ -1,6 +1,3 @@
-import nest_asyncio
-nest_asyncio.apply()
-
 import pytest
 from alembic import command
 from alembic.config import Config
