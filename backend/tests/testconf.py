@@ -2,14 +2,14 @@ import nest_asyncio
 nest_asyncio.apply()
 
 import pytest
-from starlette.testclient import TestClient
-from alembic.config import Config
 from alembic import command
+from alembic.config import Config
+from starlette.testclient import TestClient
 
 
-from flower.config import DB_URL, ADMIN_USERNAME, ADMIN_PASSWORD
-from flower.application import create_app
 from flower.core.database import db
+from flower.application import create_app
+from flower.config import DB_URL, ADMIN_USERNAME, ADMIN_PASSWORD
 
 
 @pytest.fixture(autouse=True)
@@ -17,15 +17,14 @@ async def setup():
     """
     Create a clean test database every time the tests are run.
     """
-    print(DB_URL)
     async with db.with_bind(DB_URL):
         alembic_config = Config('./alembic.ini')
         command.upgrade(alembic_config, 'head')
-        yield                            # Run the tests.
-        # await db.gino.drop_all()         # Drop the test database.
+        yield  # Run the tests.
 
 
-def get_client():
+@pytest.fixture
+def client():
     """
     Make a 'client' fixture available to test cases.
     """
@@ -40,10 +39,7 @@ def get_client():
         return test_client
 
 
-client = get_client()
-
-
-def get_access_token():
+def get_access_token(client):
     response = client.post(
         '/users/refresh-tokens', json={
             'identifier': ADMIN_USERNAME,
@@ -51,32 +47,3 @@ def get_access_token():
         }
     )
     return response.json()['access_token']
-
-
-def test_ping():
-    response = client.get('/ping')
-
-    assert response.status_code == 200, response.text
-
-
-def test_tokens():
-    response = client.post(
-        '/users/refresh-tokens', json={
-            'identifier': ADMIN_USERNAME,
-            'password': ADMIN_PASSWORD
-        }
-    )
-
-    assert response.status_code == 200, response.text
-
-
-def test_get_obj():
-    access_token = get_access_token()
-    response = client.get(
-        '/users',
-        headers={'Authorization':  f'Bearer {access_token}'}
-    )
-    assert response.status_code == 200, response.text
-    data = response.json()
-    # assert data['name'] == my_object.name
-

@@ -13,7 +13,7 @@ DB_PASSWORD = config('DB_PASSWORD')
 DB_DATABASE = config('DB_DATABASE')
 
 DB_URL = URL(
-    drivername='postgres',
+    drivername='postgresql',
     host=DB_HOST,
     port=DB_PORT,
     username=DB_USER,
@@ -61,7 +61,7 @@ if TESTING:
     DB_DATABASE = 'flower_test'
 
     DB_URL = URL(
-        drivername='postgres',
+        drivername='postgresql',
         host=DB_HOST,
         port=DB_PORT,
         username=DB_USER,
