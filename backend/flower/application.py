@@ -1,5 +1,3 @@
-import os
-
 from starlette.middleware import Middleware
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
