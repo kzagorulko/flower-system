@@ -40,7 +40,6 @@ def upgrade():
     connection.execute(
         sa.insert(t_providers).values([
             {
-                'id': 1,
                 'name': 'DaoFlowers',
                 'email': 'dao@daoflowers.com',
                 'phone': '+31657713385',
@@ -51,7 +50,6 @@ def upgrade():
                 'address': 'г. Москва, ул. Пушкина, д. 30'
             },
             {
-                'id': 2,
                 'name': '7цветов',
                 'email': 'dao@daoflowers.com',
                 'phone': '88002001711',
