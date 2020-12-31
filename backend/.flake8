@@ -9,5 +9,6 @@ exclude =
     old,
     build,
     dist,
-    migrations
+    migrations,
+    tests
 max-complexity = 10
