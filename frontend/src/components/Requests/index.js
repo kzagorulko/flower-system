@@ -86,6 +86,7 @@ export const RequestList = (props) => (
     {...props}
     actions={<RequestListActions />}
     filters={<RequestFilters />}
+    bulkActionButtons={false}
     sort={{ field: 'created', order: 'DESC' }}
   >
     <Datagrid rowClick="show">

@@ -1,4 +1,5 @@
 from uuid import uuid4
+import json
 
 from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
@@ -37,6 +38,15 @@ class Users(HTTPEndpoint):
                 query_params['role'],
                 users_query,
                 total_query
+            )
+        
+        if 'id' in query_params:
+            ids = json.loads(query_params['id'])
+            users_query, total_query = GinoQueryHelper.in_(
+                users_query,
+                total_query,
+                UserModel.id,
+                ids
             )
 
         if 'display_name' in query_params:

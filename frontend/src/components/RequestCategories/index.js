@@ -20,7 +20,7 @@ const CustomToolbar = (props) => (
 );
 
 export const RequestCategoryList = (props) => (
-  <List {...props}>
+  <List {...props} bulkActionButtons={false}>
     <Datagrid rowClick="show">
       <TextField source="id" />
       <TextField source="name" />

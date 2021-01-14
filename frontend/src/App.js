@@ -28,6 +28,18 @@ import {
   WarehouseEdit,
   WarehouseShow,
 } from './components/WarehouseList';
+import {
+  BranchesList,
+  BranchCreate,
+  BranchShow,
+  BranchEdit,
+} from './components/BranchesList';
+import {
+  SuppliesList,
+  SupplyCreate,
+  SupplyShow,
+  SupplyEdit,
+} from './components/SuppliesList';
 import { RequestList, RequestShow, RequestCreate } from './components/Requests';
 import {
   RequestCategoryList,
@@ -101,6 +113,22 @@ const App = () => (
         ? (
           <Resource
             name="branches"
+            list={BranchesList}
+            show={BranchShow}
+            create={permissions.branches.includes('create') ? BranchCreate : null}
+            edit={permissions.branches.includes('update') ? BranchEdit : null}
+            options={{ label: 'Филиалы' }}
+          />
+        ) : null,
+      permissions.supplies
+        ? (
+          <Resource
+            name="supplies"
+            list={SuppliesList}
+            show={SupplyShow}
+            create={permissions.supplies.includes('create') ? SupplyCreate : null}
+            edit={permissions.supplies.includes('update') ? SupplyEdit : null}
+            options={{ label: 'Поставки' }}
           />
         ) : null,
       permissions.sales

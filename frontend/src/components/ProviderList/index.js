@@ -98,7 +98,12 @@ export const ProviderShow = (props) => (
 );
 
 export const ProviderList = (props) => (
-  <List {...props} actions={<ProviderListActions />} filters={<ProviderFilter />}>
+  <List
+    {...props}
+    actions={<ProviderListActions />}
+    bulkActionButtons={false}
+    filters={<ProviderFilter />}
+  >
     <Datagrid rowClick="edit">
       <TextField source="id" />
       <TextField source="name" />

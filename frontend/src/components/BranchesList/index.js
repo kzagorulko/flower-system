@@ -3,8 +3,6 @@ import {
   List,
   Datagrid,
   TextField,
-  NumberField,
-  NumberInput,
   useListContext,
   CreateButton,
   TopToolbar,
@@ -16,14 +14,14 @@ import {
   usePermissions,
   Show,
   SimpleShowLayout,
-  ArrayField,
+  ReferenceArrayField,
 } from 'react-admin';
 
-const WarehouseListActions = () => {
+const BranchListActions = () => {
   const {
     basePath,
   } = useListContext();
-  const { loaded, permissions } = usePermissions('/warehouses');
+  const { loaded, permissions } = usePermissions('/branches');
 
   return loaded ? (
     <TopToolbar>
@@ -32,62 +30,56 @@ const WarehouseListActions = () => {
   ) : <TopToolbar />;
 };
 
-const WarehouseFilter = (props) => (
+const BranchFilter = (props) => (
   <Filter {...props}>
     <TextInput label="Search" source="address" alwaysOn />
   </Filter>
 );
 
-export const WarehouseCreate = (props) => (
+export const BranchCreate = (props) => (
   <Create {...props}>
     <SimpleForm>
       <TextInput source="address" />
-      <NumberInput source="max_value" />
     </SimpleForm>
   </Create>
 );
 
-export const WarehouseEdit = (props) => (
+export const BranchEdit = (props) => (
   <Edit undoable={false} {...props}>
     <SimpleForm>
       <TextInput disabled source="id" />
       <TextInput source="address" />
-      <NumberInput source="max_value" />
     </SimpleForm>
   </Edit>
 );
 
-export const WarehouseShow = (props) => (
+export const BranchShow = (props) => (
   <Show {...props}>
     <SimpleShowLayout>
       <TextField source="id" />
       <TextField source="address" />
-      <NumberField source="max_value" />
-      <NumberField source="left_amount" />
-      <ArrayField source="products">
+      <ReferenceArrayField label="Users" reference="users" source="user_ids">
         <Datagrid>
           <TextField source="id" />
-          <TextField source="value" />
+          <TextField source="displayName" label="Name" />
         </Datagrid>
-      </ArrayField>
+      </ReferenceArrayField>
     </SimpleShowLayout>
   </Show>
 );
 
-export const WarehouseList = (props) => (
+export const BranchesList = (props) => (
   <List
     {...props}
-    actions={<WarehouseListActions />}
+    actions={<BranchListActions />}
     bulkActionButtons={false}
-    filters={<WarehouseFilter />}
+    filters={<BranchFilter />}
   >
-    <Datagrid rowClick="edit">
+    <Datagrid rowClick="show">
       <TextField source="id" />
       <TextField source="address" />
-      <NumberField source="max_value" />
-      <NumberField source="left_amount" />
     </Datagrid>
   </List>
 );
 
-export default WarehouseList;
+export default BranchesList;

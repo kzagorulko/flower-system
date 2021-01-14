@@ -78,7 +78,12 @@ export const ProductShow = (props) => (
 );
 
 export const ProductList = (props) => (
-  <List {...props} actions={<ProductListActions />} filters={<ProductFilter />}>
+  <List
+    {...props}
+    actions={<ProductListActions />}
+    bulkActionButtons={false}
+    filters={<ProductFilter />}
+  >
     <Datagrid rowClick="edit">
       <ImageField source="image_path" title="image" sortable={false} />
       <TextField source="id" />
