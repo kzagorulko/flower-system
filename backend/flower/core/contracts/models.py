@@ -43,14 +43,16 @@ class ContractModel(db.Model):
             'id': self.id,
             'number': self.number,
             'status': self.status.name,
-            'path': (
-                SERVER_HOSTNAME + MediaUtils.generate_full_path(self.path)
-            ),
             'startDate': convert_to_utc(self.start_date).isoformat(),
             'endDate': convert_to_utc(self.end_date).isoformat(),
         }
 
-        if for_card and self.cancel_description:
-            result['cancelDescription'] = self.cancel_description
+        if for_card:
+            result['providerId'] = self.provider_id
+            result['path'] = (
+                SERVER_HOSTNAME + MediaUtils.generate_full_path(self.path)
+            )
+            if self.cancel_description:
+                result['cancelDescription'] = self.cancel_description
 
         return result

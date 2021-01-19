@@ -32,7 +32,7 @@ import {
 import { SalesList, SalesCreate, SalesShow } from './components/SalesList';
 
 import './App.less';
-import { ContractList } from './components/Contracts';
+import { ContractList, ContractShow } from './components/Contracts';
 
 const App = () => (
   <Admin title="Flower System" dataProvider={dataProvider} authProvider={authProvider}>
@@ -113,6 +113,7 @@ const App = () => (
           <Resource
             name="contracts"
             list={ContractList}
+            show={ContractShow}
             options={{ label: 'Контракты' }}
           />
         ) : null,

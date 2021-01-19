@@ -1,3 +1,4 @@
+import json
 import asyncio
 from datetime import date, datetime
 from starlette.routing import Route
@@ -21,6 +22,15 @@ class Contracts(HTTPEndpoint):
         data = request.query_params
         contracts_query = ContractModel.query
         total_query = db.select([db.func.count(ContractModel.id)])
+
+        if 'id' in data:
+            ids = json.loads(data['id'])
+            current_query, total_query = GinoQueryHelper.in_(
+                contracts_query,
+                total_query,
+                ContractModel.id,
+                ids
+            )
 
         if 'startDate' in data:
             year, month, day = data['startDate'].split('-')[:3]
@@ -101,39 +111,6 @@ class Contracts(HTTPEndpoint):
             provider_id=data['providerId']
         )
 
-        # async def _manage_status(contract_id):
-        #     await asyncio.sleep(
-        #         (
-        #             datetime.combine(start_date, datetime.min.time()) -
-        #             datetime.now()
-        #         ).seconds
-        #     )
-        #     _contract = await ContractModel.get(contract_id)
-        #     if _contract.status != ContractStatus.CANCELLED:
-        #         await _contract.update(
-        #             status=ContractStatus.OPERATING
-        #         ).apply()
-        #     else:
-        #         return
-        #     await asyncio.sleep(
-        #         (
-        #             datetime.combine(end_date, datetime.min.time()) -
-        #             datetime.now()
-        #         ).seconds
-        #     )
-        #     _contract = await ContractModel.get(contract_id)
-        #     if _contract.status != ContractStatus.CANCELLED:
-        #         await _contract.update(
-        #             status=ContractStatus.DONE
-        #         ).apply()
-        #
-        # if contract.status == ContractStatus.NOT_STARTED:
-        #     return make_response(
-        #         {'id': contract.id},
-        #         background=BackgroundTask(
-        #             _manage_status, contract_id=contract.id
-        #         )
-        #     )
         return make_response({'id': contract.id})
 
     @staticmethod
@@ -146,7 +123,21 @@ class Contract(HTTPEndpoint):
     @jwt_required
     @permissions.required(action=PermissionAction.GET)
     async def get(self, request):
-        pass
+        contract_id = request.path_params['contract_id']
+        contract = await ContractModel.get(contract_id)
+        return make_response(contract.jsonify(for_card=True))
+
+    @jwt_required
+    @permissions.required(action=PermissionAction.CREATE)
+    async def patch(self, request):
+        contract_id = request.path_params['contract_id']
+        data = await request.json()
+        contract = await ContractModel.get(contract_id)
+        contract.update(
+            status=ContractStatus.CANCELLED,
+            cancel_description=data['cancelDescription']
+        )
+
 
 @jwt_required
 async def get_actions(request, user):
