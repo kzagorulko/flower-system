@@ -68,3 +68,5 @@ if TESTING:
         password=DB_PASSWORD,
         database=DB_DATABASE
     )
+
+USE_SSL = config('USE_SSL')
