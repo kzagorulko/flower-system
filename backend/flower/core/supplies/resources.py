@@ -133,7 +133,7 @@ class Supplies(HTTPEndpoint):
 class Supply(HTTPEndpoint):
     @staticmethod
     @jwt_required
-    @permissions.required(action=permissions.actions.GET_ONE)
+    @permissions.required(action=permissions.actions.GET)
     async def get(request):
         supply_id = request.path_params['supply_id']
 
