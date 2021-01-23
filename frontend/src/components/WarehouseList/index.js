@@ -81,7 +81,7 @@ export const WarehouseList = (props) => (
     bulkActionButtons={false}
     filters={<WarehouseFilter />}
   >
-    <Datagrid rowClick="edit">
+    <Datagrid rowClick="show">
       <TextField source="id" />
       <TextField source="address" />
       <NumberField source="max_value" />

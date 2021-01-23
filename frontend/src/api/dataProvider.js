@@ -62,8 +62,8 @@ export default {
         };
       })),
 
-  update: (resource, params, status = false) => prepareImage(params)
-    .then((preparedParams) => request('PATCH', prepareUrl(`/${resource}/${preparedParams.id}`, status), preparedParams.data)
+  update: (resource, params) => prepareImage(params)
+    .then((preparedParams) => request('PATCH', prepareUrl(`/${resource}/${preparedParams.id}`, preparedParams.updateStatus), preparedParams.data)
       .then(() => {
         const data = {
           id: preparedParams.id,

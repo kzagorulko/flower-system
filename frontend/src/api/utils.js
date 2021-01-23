@@ -106,10 +106,12 @@ export function prepareImage(params) {
 }
 
 export const prepareUrl = (url, status) => {
+  console.log(url, status);
   if (url.includes('requestCategories')) {
     return url.replace(/requestCategories/gi, 'requests/categories');
   }
   if (status) {
+    console.log(url);
     return `${url}/status`;
   }
   return url;

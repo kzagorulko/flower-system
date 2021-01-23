@@ -120,7 +120,7 @@ export const RequestShow = (props) => {
 
   return (record && record.creator && !loading) ? (
     <Show title={`Заявка №${id}`} {...props}>
-      <SimpleForm toolbar={<div />}>
+      <SimpleForm toolbar={false}>
         <TextField record={record} source="id" />
         <TextField record={record} source="name" />
         <TextField record={record} source="department" />
@@ -130,8 +130,9 @@ export const RequestShow = (props) => {
               record={record}
               source="statusCode"
               choices={statusChoices}
-              onChange={(e) => dataProvider.update('requests', { id, data: { status: e.target.value } }, true)
-                .then(() => setLoading(() => true))}
+              onChange={(e) => dataProvider.update('requests', { id, data: { status: e.target.value }, updateStatus: true })
+                .then(() => setLoading(() => true))
+                .catch((err) => notify(err.message, 'error'))}
               label="Статус"
             />
           ) : <TextField record={record} source="status" /> }

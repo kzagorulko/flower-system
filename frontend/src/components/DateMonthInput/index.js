@@ -16,7 +16,7 @@ const DateMonthInput = (props) => {
   const { label } = props;
 
   const date = new Date();
-  const month = `${date.getMonth() + 1}`.padStart(0, 2);
+  const month = `0${date.getMonth() + 1}`.slice(-2);
   const year = date.getFullYear();
   const currentMonthControl = `${year}-${month}`;
 
@@ -26,7 +26,7 @@ const DateMonthInput = (props) => {
       label={label}
       type="month"
       onChange={onChange}
-      value={value || currentMonthControl}
+      value={currentMonthControl}
       error={!!(touched && error)}
       helperText={touched && error}
       margin="normal"
