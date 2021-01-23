@@ -7,6 +7,7 @@ from uuid import uuid4
 from functools import wraps
 from base64 import b64decode
 from mimetypes import guess_extension
+from calendar import monthrange
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
@@ -240,6 +241,9 @@ def convert_to_utc(dt):
 
 
 class GinoQueryHelper:
+    LTE = '<='
+    GTE = '>='
+
     @staticmethod
     def pagination(query_params, current_query):
         if 'page' in query_params and 'perPage' in query_params:
@@ -278,11 +282,49 @@ class GinoQueryHelper:
         )
 
     @staticmethod
+    def equal(field, value, current_query, total_query):
+        return (
+            current_query.where(field == value),
+            total_query.where(field == value)
+        )
+
+    @staticmethod
     def in_(current_query, total_query, field, values):
         return (
             current_query.where(field.in_(values)),
             total_query.where(field.in_(values))
         )
+
+    @staticmethod
+    def month_year_cond(field, value, c_type, current_query, total_query):
+        custom_date = GinoQueryHelper.prepare_custom_date(value, c_type)
+
+        if c_type == GinoQueryHelper.LTE:
+            return (
+                current_query.where(field <= custom_date),
+                total_query.where(field <= custom_date)
+            )
+        else:
+            return (
+                current_query.where(field >= custom_date),
+                total_query.where(field >= custom_date)
+            )
+
+    @staticmethod
+    def prepare_custom_date(date_str, c_type=None):
+        date_list = date_str.split('-')
+
+        year = int(date_list[0])
+        month = int(date_list[1])
+
+        if len(date_list) > 2:
+            day = int(date_list[2])
+        elif not c_type or c_type == GinoQueryHelper.GTE:
+            day = 1
+        else:
+            day = monthrange(year, month)[1]
+
+        return datetime.date(year, month, day)
 
 
 def make_error(description, status_code=400):
@@ -341,6 +383,10 @@ class UserExtractionError(Exception):
         self.status_code = status_code
 
 
+class ParamsMissingError(Exception):
+    pass
+
+
 def _encode_jwt(session, token_type):
     algorithm = config.JWT_ALGORITHM
     time_now = datetime.datetime.utcnow()
@@ -385,6 +431,17 @@ def make_response(content, background=None):
     if background:
         return JSONResponse(content, background=background)
     return JSONResponse(content)
+
+
+def check_missing_params(query, data):
+    errors = []
+
+    for param_key in data:
+        if param_key not in query:
+            errors.append(f"Parameter `{param_key}` required")
+
+    if errors:
+        raise ParamsMissingError("\n".join(errors), 400)
 
 
 NO_CONTENT = Response('', status_code=204)

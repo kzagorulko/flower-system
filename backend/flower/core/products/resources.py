@@ -60,8 +60,11 @@ class Products(HTTPEndpoint):
             )
 
         if 'name' in query_params:
-            current_query = current_query.where(
-                ProductModel.name.ilike(f'%{query_params["name"]}%')
+            current_query, total_query = GinoQueryHelper.search(
+                ProductModel.name,
+                query_params["name"],
+                current_query,
+                total_query
             )
 
         current_query = GinoQueryHelper.pagination(

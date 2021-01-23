@@ -7,11 +7,14 @@ from .permissions.resources import get_apps
 from .users.resources import routes as user_routes
 from .roles.resources import routes as roles_routes
 from .sales.resources import routes as sales_routes
+from .supplies.resources import routes as supplies_routes
 from .requests.resources import routes as request_routes
 from .products.resources import routes as product_routes
 from .branches.resources import routes as branches_routes
 from .providers.resources import routes as provider_routes
 from .contracts.resources import routes as contract_routes
+from .purchases.resources import routes as purchases_routes
+from .warehouses.resources import routes as warehouses_routes
 
 
 async def ping(request):
@@ -28,6 +31,9 @@ routes = [
     Mount('/products', routes=product_routes),
     Mount('/requests', routes=request_routes),
     Mount('/branches', routes=branches_routes),
+    Mount('/supplies', routes=supplies_routes),
     Mount('/providers', routes=provider_routes),
     Mount('/contracts', routes=contract_routes),
+    Mount('/purchases', routes=purchases_routes),
+    Mount('/warehouses', routes=warehouses_routes),
 ]

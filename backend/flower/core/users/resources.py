@@ -32,11 +32,11 @@ class Users(HTTPEndpoint):
         query_params = request.query_params
 
         if 'role' in query_params:
-            users_query = users_query.where(
-                RoleModel.name == query_params['role']
-            )
-            total_query = total_query.where(
-                RoleModel.name == query_params['role']
+            users_query, total_query = GinoQueryHelper.equal(
+                RoleModel.name,
+                query_params['role'],
+                users_query,
+                total_query
             )
 
         if 'display_name' in query_params:

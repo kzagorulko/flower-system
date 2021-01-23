@@ -22,6 +22,12 @@ import {
   ProductEdit,
   ProductShow,
 } from './components/ProductsList';
+import {
+  WarehouseList,
+  WarehouseCreate,
+  WarehouseEdit,
+  WarehouseShow,
+} from './components/WarehouseList';
 import { RequestList, RequestShow, RequestCreate } from './components/Requests';
 import {
   RequestCategoryList,
@@ -106,6 +112,17 @@ const App = () => (
             create={permissions.sales.includes('create') ? SalesCreate : null}
             show={SalesShow}
             options={{ label: 'Продажи' }}
+          />
+        ) : null,
+      permissions.warehouses
+        ? (
+          <Resource
+            name="warehouses"
+            list={WarehouseList}
+            create={permissions.warehouses.includes('create') ? WarehouseCreate : null}
+            show={WarehouseShow}
+            edit={permissions.warehouses.includes('update') ? WarehouseEdit : null}
+            options={{ label: 'Склады' }}
           />
         ) : null,
       permissions.contracts

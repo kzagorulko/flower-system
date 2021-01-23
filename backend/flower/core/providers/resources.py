@@ -37,11 +37,11 @@ class Providers(HTTPEndpoint):
             )
 
         if 'name' in query_params:
-            providers_query = providers_query.where(
-                ProviderModel.name.ilike(f'%{query_params["name"]}%')
-            )
-            total_query = total_query.where(
-                ProviderModel.name.ilike(f'%{query_params["name"]}%')
+            providers_query, total_query = GinoQueryHelper.search(
+                ProviderModel.name,
+                query_params["name"],
+                providers_query,
+                total_query
             )
 
         providers_query = GinoQueryHelper.pagination(
