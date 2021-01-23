@@ -12,7 +12,7 @@ from ..utils import (
 )
 from ..models import (
     WarehouseModel, ProductModel, ProductWarehouseModel, BranchModel,
-    SupplyModel, SupplyStatus as Status
+    SupplyModel, SupplyStatus as Status,
 )
 
 permissions = Permissions(app_name='supplies')
@@ -63,8 +63,10 @@ class Supplies(HTTPEndpoint):
             )
 
     @jwt_required
-    @permissions.required(action=permissions.actions.GET)
-    async def get(self, request):
+    @permissions.required(
+        action=permissions.actions.GET, return_role=True, return_user=True
+    )
+    async def get(self, request, role, user):
         query_params = request.query_params
 
         current_query = SupplyModel.query
@@ -105,6 +107,14 @@ class Supplies(HTTPEndpoint):
                 SupplyModel.date,
                 query_params['endDate'],
                 GinoQueryHelper.LTE,
+                current_query,
+                total_query
+            )
+
+        if role.name == 'branches':
+            current_query, total_query = GinoQueryHelper.equal(
+                SupplyModel.branch_id,
+                user.branch_id,
                 current_query,
                 total_query
             )
