@@ -36,9 +36,9 @@ import {
   RequestCategoryEdit,
 } from './components/RequestCategories';
 import { SalesList, SalesCreate, SalesShow } from './components/SalesList';
+import { ContractList, ContractShow } from './components/Contracts';
 
 import './App.less';
-import { ContractList, ContractShow } from './components/Contracts';
 
 const App = () => (
   <Admin title="Flower System" dataProvider={dataProvider} authProvider={authProvider}>

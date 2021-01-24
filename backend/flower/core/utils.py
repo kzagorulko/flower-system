@@ -6,8 +6,8 @@ from pytz import utc
 from uuid import uuid4
 from functools import wraps
 from base64 import b64decode
-from mimetypes import guess_extension
 from calendar import monthrange
+from mimetypes import guess_extension
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
@@ -206,7 +206,7 @@ class MediaUtils:
 
     @staticmethod
     def create_filename(ext):
-        return str(uuid4()) + ext
+        return str(uuid4()) + '.' + ext
 
     @staticmethod
     def delete_file(path):

@@ -15,6 +15,7 @@ def create_app():
     from . import db
     from .core import routes
     from .core.envents import startup_event
+
     from .config import TESTING
 
     app = Starlette(
