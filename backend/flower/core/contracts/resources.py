@@ -133,10 +133,11 @@ class Contract(HTTPEndpoint):
         contract_id = request.path_params['contract_id']
         data = await request.json()
         contract = await ContractModel.get(contract_id)
-        contract.update(
+        await contract.update(
             status=ContractStatus.CANCELLED,
             cancel_description=data['cancelDescription']
-        )
+        ).apply()
+        return NO_CONTENT
 
 
 @jwt_required

@@ -12,7 +12,8 @@ from ..utils import (
 )
 from ..models import (
     WarehouseModel, ProductModel, ProductWarehouseModel,
-    PurchaseStatus as Status, PurchaseModel
+    PurchaseStatus as Status, PurchaseModel, ContractModel, ContractStatus,
+    SupplyModel, SupplyStatus
 )
 
 permissions = Permissions(app_name='purchases')
@@ -28,11 +29,19 @@ class Purchases(HTTPEndpoint):
         try:
             check_missing_params(
                 data,
-                ['value', 'product_id', 'warehouse_id', 'date', 'address']
+                [
+                    'value',
+                    'product_id',
+                    'warehouse_id',
+                    'date',
+                    'address',
+                    'contract_id',
+                ]
             )
 
             product = await ProductModel.get(data['product_id'])
             warehouse = await WarehouseModel.get(data['warehouse_id'])
+            contract = await ContractModel.get(data['contract_id'])
 
             target_date = datetime.strptime(data['date'], '%Y-%m-%d')
 
@@ -41,6 +50,9 @@ class Purchases(HTTPEndpoint):
 
             if not warehouse:
                 raise Exception('Warehouse not found')
+
+            if not contract or contract.status != ContractStatus.OPERATING:
+                raise Exception('Contract is not valid')
 
             products_in_warehouse = await db.select(
                 [db.func.sum(ProductWarehouseModel.value)]
@@ -58,8 +70,17 @@ class Purchases(HTTPEndpoint):
                 (PurchaseModel.date < target_date)
             ).gino.scalar() or 0
 
+            supplies = await db.select(
+                [db.func.sum(SupplyModel.value)]
+            ).where(
+                (
+                    (SupplyModel.status != SupplyStatus.CANCELLED)
+                    & (SupplyModel.date < target_date)
+                )
+            ).gino.scalar() or 0
+
             if (
-                products_in_warehouse + purchases_in_progress
+                products_in_warehouse + purchases_in_progress - supplies
                 + int(data['value'])
                 > warehouse.max_value
             ):

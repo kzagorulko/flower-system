@@ -36,7 +36,12 @@ import {
   RequestCategoryEdit,
 } from './components/RequestCategories';
 import { SalesList, SalesCreate, SalesShow } from './components/SalesList';
-import { ContractList, ContractShow } from './components/Contracts';
+import {
+  ContractList,
+  ContractShow,
+  ContractCreate,
+  ContractEdit,
+} from './components/Contracts';
 
 import './App.less';
 
@@ -131,6 +136,8 @@ const App = () => (
             name="contracts"
             list={ContractList}
             show={ContractShow}
+            create={permissions.contracts.includes('create') ? ContractCreate : null}
+            edit={permissions.contracts.includes('update') ? ContractEdit : null}
             options={{ label: 'Контракты' }}
           />
         ) : null,

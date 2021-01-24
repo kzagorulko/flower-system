@@ -90,16 +90,16 @@ export function convertFileToBase64(file) {
  * @param params - argument with data.image
  * @returns callback with prepared argument
  */
-export function prepareImage(params) {
+export function prepareFile(params) {
   return new Promise((resolve, reject) => {
-    if (!(params.data && params.data.image)) {
+    if (!(params.data && params.data.file)) {
       return resolve(params);
     }
 
-    return convertFileToBase64(params.data.image).then((base64Pictures) => {
+    return convertFileToBase64(params.data.file).then((base64Pictures) => {
       const customParams = { ...params };
 
-      customParams.data.image = base64Pictures;
+      customParams.data.file = base64Pictures;
       return resolve(customParams);
     }).catch((error) => reject(error));
   });

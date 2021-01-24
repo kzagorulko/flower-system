@@ -20,10 +20,13 @@ class PurchaseModel(db.Model):
     )
     date = db.Column(db.DateTime(timezone=True), nullable=False)
     product_id = db.Column(
-        db.Integer, db.ForeignKey('products.id'), nullable=True
+        db.Integer, db.ForeignKey('products.id'), nullable=False
     )
     warehouse_id = db.Column(
-        db.Integer, db.ForeignKey('warehouses.id'), nullable=True
+        db.Integer, db.ForeignKey('warehouses.id'), nullable=False
+    )
+    contract_id = db.Column(
+        db.Integer, db.ForeignKey('warehouses.id'), nullable=False
     )
 
     def jsonify(self):

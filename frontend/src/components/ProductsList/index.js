@@ -55,8 +55,8 @@ export const ProductEdit = (props) => (
   <Edit undoable={false} {...props}>
     <SimpleForm>
       <TextInput disabled source="id" />
-      <ImageInput source="image" title="image">
-        <ImageField source="image_path" title="image" />
+      <ImageInput source="file" title="image">
+        <ImageField source="file_path" title="image" />
       </ImageInput>
       <TextInput source="name" />
       <TextInput source="price" />
