@@ -1,20 +1,17 @@
 import datetime
 
-from starlette.config import Config
+from starlette.config import environ
 from sqlalchemy.engine.url import URL
 
+config = environ
 
-<<<<<<< HEAD
-config = Config('.env')
-=======
-config = Config('.local.env')
->>>>>>> d0ef8e06b19d30427ce6a40b16b53d11bddb48c1
+DB_HOST = config['DB_HOST']
+DB_PORT = config['DB_PORT']
+DB_USER = config['DB_USER']
 
-DB_HOST = config('DB_HOST')
-DB_PORT = config('DB_PORT')
-DB_USER = config('DB_USER')
-DB_PASSWORD = config('DB_PASSWORD')
-DB_DATABASE = config('DB_DATABASE')
+
+DB_PASSWORD = config['DB_PASSWORD']
+DB_DATABASE = config['DB_DATABASE']
 
 DB_URL = URL(
     drivername='postgresql',
@@ -28,18 +25,18 @@ DB_URL = URL(
 
 def _cast_token_expires(value, unit='days'):
     try:
-        return datetime.timedelta(**{unit: config(value, cast=int)})
+        return datetime.timedelta(**{unit: int(config[value])})
     except ValueError:
         pass
     try:
-        return config(value, cast=bool)
+        return bool(config[value])
     except ValueError:
-        raise ValueError(f'{config(value)} is not int or bool value')
+        raise ValueError(f'{config[value]} is not int or bool value')
 
 
-SERVER_HOST = config('SERVER_HOST')
-SERVER_PORT = config('SERVER_PORT')
-SERVER_PROTOCOL = config('SERVER_PROTOCOL')
+SERVER_HOST = config['SERVER_HOST']
+SERVER_PORT = config['SERVER_PORT']
+SERVER_PROTOCOL = config['SERVER_PROTOCOL']
 SERVER_HOSTNAME = (
     SERVER_PROTOCOL + "://" + SERVER_HOST + ":" + SERVER_PORT + "/"
 )
@@ -47,18 +44,18 @@ SERVER_HOSTNAME = (
 REFRESH_TOKEN_EXPIRES = _cast_token_expires('REFRESH_TOKEN_EXPIRES', 'days')
 ACCESS_TOKEN_EXPIRES = _cast_token_expires('ACCESS_TOKEN_EXPIRES', 'minutes')
 
-SECRET_KEY = config('SECRET_KEY')
-JWT_ALGORITHM = config('JWT_ALGORITHM')
+SECRET_KEY = config['SECRET_KEY']
+JWT_ALGORITHM = config['JWT_ALGORITHM']
 
-ADMIN_USERNAME = config('ADMIN_USERNAME')
-ADMIN_PASSWORD = config('ADMIN_PASSWORD')
-ADMIN_DISPLAY_NAME = config('ADMIN_DISPLAY_NAME')
-ADMIN_EMAIL = config('ADMIN_EMAIL')
+ADMIN_USERNAME = config['ADMIN_USERNAME']
+ADMIN_PASSWORD = config['ADMIN_PASSWORD']
+ADMIN_DISPLAY_NAME = config['ADMIN_DISPLAY_NAME']
+ADMIN_EMAIL = config['ADMIN_EMAIL']
 
-MEDIA_FOLDER = config('MEDIA_FOLDER')
-MEDIA_URI = config('MEDIA_URI')
+MEDIA_FOLDER = config['MEDIA_FOLDER']
+MEDIA_URI = config['MEDIA_URI']
 
-TESTING = config('TESTING', cast=bool, default=False)
+TESTING = bool(config['TESTING'])
 
 if TESTING:
     DB_USER = 'flower_test_user'
@@ -75,4 +72,4 @@ if TESTING:
     )
 
 
-USE_SSL = config('USE_SSL', default=False)
+USE_SSL = config['USE_SSL']
