@@ -231,6 +231,7 @@ class MediaUtils:
     def get_url(path):
         return urljoin(config.MEDIA_URI, MediaUtils.generate_full_path(path))
 
+
 def convert_to_utc(dt):
     """Return same datetime if it's aware or sets it's timezone to UTC."""
 
