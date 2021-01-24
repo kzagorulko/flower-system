@@ -14,7 +14,7 @@ class PurchaseModel(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     value = db.Column(db.Float, nullable=False)
-    address = db.Column(db.String(100), unique=True, nullable=False)
+    address = db.Column(db.String(100), nullable=False)
     status = db.Column(
         db.Enum(PurchaseStatus), nullable=False, default=PurchaseStatus.NEW
     )
@@ -26,7 +26,7 @@ class PurchaseModel(db.Model):
         db.Integer, db.ForeignKey('warehouses.id'), nullable=False
     )
     contract_id = db.Column(
-        db.Integer, db.ForeignKey('warehouses.id'), nullable=False
+        db.Integer, db.ForeignKey('contract.id'), nullable=False
     )
 
     def jsonify(self):

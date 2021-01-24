@@ -36,3 +36,4 @@ class PermissionAction:
     UPDATE_STATUS = 'update_status'
     CREATE_CATEGORY = 'create_category'
     UPDATE_CATEGORY = 'update_category'
+    UPDATE_WAREHOUSE = 'update_warehouse'

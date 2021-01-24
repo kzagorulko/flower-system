@@ -56,8 +56,7 @@ def upgrade():
     op.alter_column('purchases', 'warehouse_id',
                existing_type=sa.INTEGER(),
                nullable=False)
-    op.create_unique_constraint(None, 'purchases', ['address'])
-    op.create_foreign_key(None, 'purchases', 'warehouses', ['contract_id'], ['id'])
+    op.create_foreign_key('purchases_contracts_fk', 'purchases', 'contracts', ['contract_id'], ['id'])
     op.alter_column('supplies', 'branch_id',
                existing_type=sa.INTEGER(),
                nullable=False)
@@ -90,8 +89,7 @@ def downgrade():
     op.alter_column('supplies', 'branch_id',
                existing_type=sa.INTEGER(),
                nullable=True)
-    op.drop_constraint(None, 'purchases', type_='foreignkey')
-    op.drop_constraint(None, 'purchases', type_='unique')
+    op.drop_constraint('purchases_contracts_fk', 'purchases', type_='foreignkey')
     op.alter_column('purchases', 'warehouse_id',
                existing_type=sa.INTEGER(),
                nullable=True)
