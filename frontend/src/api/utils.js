@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { HttpError } from 'react-admin';
 
-export const apiUrl = '/api';
+export const apiUrl = process.env.REACT_APP_API_URL;
 
 export const API = axios.create();
 
