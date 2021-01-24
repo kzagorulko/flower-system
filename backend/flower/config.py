@@ -4,7 +4,7 @@ from starlette.config import Config
 from sqlalchemy.engine.url import URL
 
 
-config = Config('.env')
+config = Config('.local.env')
 
 DB_HOST = config('DB_HOST')
 DB_PORT = config('DB_PORT')
@@ -52,6 +52,7 @@ ADMIN_DISPLAY_NAME = config('ADMIN_DISPLAY_NAME')
 ADMIN_EMAIL = config('ADMIN_EMAIL')
 
 MEDIA_FOLDER = config('MEDIA_FOLDER')
+MEDIA_URI = config('MEDIA_URI')
 
 TESTING = config('TESTING', cast=bool, default=False)
 
@@ -69,4 +70,4 @@ if TESTING:
         database=DB_DATABASE
     )
 
-USE_SSL = config('USE_SSL')
+USE_SSL = config('USE_SSL', default=False)

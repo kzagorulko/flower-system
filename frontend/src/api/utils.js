@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { HttpError } from 'react-admin';
 
-export const apiUrl = '/api';
+// export const apiUrl = '/api';
 
 export const API = axios.create();
 
@@ -33,7 +33,7 @@ export function destroyCookie(name) {
 
 export function updateAccessToken() {
   return API.post(
-    `${apiUrl}/users/access-tokens`,
+    `${process.env.REACT_APP_API_URL}/users/access-tokens`,
     {},
     {
       headers: {
@@ -59,7 +59,7 @@ export function request(method, url, data = {}) {
 
   return API({
     method: method.toLowerCase(),
-    url: `${apiUrl}${url}`,
+    url: `${process.env.REACT_APP_API_URL}${url}`,
     params: method.toLowerCase() === 'get' ? data : {},
     data: method.toLowerCase() === 'get' ? {} : data,
     headers,
