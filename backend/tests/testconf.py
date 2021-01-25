@@ -37,7 +37,7 @@ def client():
 
 def get_access_token(client):
     response = client.post(
-        '/users/refresh-tokens', json={
+        '/api/users/refresh-tokens', json={
             'identifier': ADMIN_USERNAME,
             'password': ADMIN_PASSWORD
         }

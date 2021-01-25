@@ -7,6 +7,7 @@ from uuid import uuid4
 from functools import wraps
 from base64 import b64decode
 from calendar import monthrange
+from urllib.parse import urljoin
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
@@ -225,6 +226,10 @@ class MediaUtils:
     def generate_full_path(path):
         # PS: normpath на Windows преобразует обычные слеши в обратные
         return os.path.normpath(os.path.join(config.MEDIA_FOLDER, path))
+
+    @staticmethod
+    def get_url(path):
+        return urljoin(config.MEDIA_URI, MediaUtils.generate_full_path(path))
 
 
 def convert_to_utc(dt):
