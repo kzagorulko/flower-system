@@ -1,15 +1,13 @@
 import json
-import asyncio
-from datetime import date, datetime
+from datetime import date
 from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
-from starlette.background import BackgroundTask
 
 from ..database import db
 from ..models import ContractModel, PermissionAction, ContractStatus
 from ..utils import (
     with_transaction, jwt_required, make_response, make_list_response,
-    make_error, Permissions, GinoQueryHelper, MediaUtils, NO_CONTENT,
+    Permissions, GinoQueryHelper, MediaUtils, NO_CONTENT,
 )
 
 permissions = Permissions(app_name='contracts')
