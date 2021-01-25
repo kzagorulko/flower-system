@@ -126,6 +126,14 @@ class Purchases(HTTPEndpoint):
                 total_query
             )
 
+        if 'contract_id' in query_params:
+            current_query, total_query = GinoQueryHelper.equal(
+                PurchaseModel.contract_id,
+                int(query_params['contract_id']),
+                current_query,
+                total_query
+            )
+
         if 'startDate' in query_params:
             current_query, total_query = GinoQueryHelper.month_year_cond(
                 PurchaseModel.date,
