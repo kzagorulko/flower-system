@@ -1,3 +1,4 @@
+from starlette.routing import Mount
 from starlette.middleware import Middleware
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
@@ -20,7 +21,7 @@ def create_app():
 
     app = Starlette(
         debug=True,
-        routes=routes,
+        routes=[Mount('/api', routes=routes)],
         middleware=middleware,
         on_startup=[startup_event]
     )
