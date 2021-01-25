@@ -11,6 +11,7 @@ import AddShoppingCartIcon from '@material-ui/icons/AddShoppingCart';
 import DepartureBoardIcon from '@material-ui/icons/DepartureBoard';
 import LocalShippingIcon from '@material-ui/icons/LocalShipping';
 import HomeWorkIcon from '@material-ui/icons/HomeWork';
+import AssignmentIcon from '@material-ui/icons/Assignment';
 import dataProvider from './api/dataProvider';
 import authProvider from './api/authProvider';
 import {
@@ -187,7 +188,8 @@ const App = () => (
             edit={permissions.warehouses.includes('update') ? WarehouseEdit : null}
             icon={HomeWorkIcon}
             options={{ label: 'Склады' }}
-          />) : null,
+          />
+        ) : null,
       permissions.contracts
         ? (
           <Resource
@@ -196,6 +198,7 @@ const App = () => (
             show={ContractShow}
             create={permissions.contracts.includes('create') ? ContractCreate : null}
             edit={permissions.contracts.includes('update') ? ContractEdit : null}
+            icon={AssignmentIcon}
             options={{ label: 'Контракты' }}
           />
         ) : null,

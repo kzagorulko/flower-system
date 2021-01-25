@@ -18,10 +18,17 @@ import {
   FileInput,
   required,
   Edit,
+  Filter,
 } from 'react-admin';
 
+const ContractFilter = (props) => (
+  <Filter {...props}>
+    <TextInput label="Search" source="number" alwaysOn />
+  </Filter>
+);
+
 export const ContractList = (props) => (
-  <List {...props}>
+  <List {...props} filters={<ContractFilter />} bulkActionButtons={false}>
     <Datagrid rowClick="show">
       <TextField source="id" />
       <TextField source="number" />

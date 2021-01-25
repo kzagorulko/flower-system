@@ -130,7 +130,7 @@ export const RequestShow = (props) => {
               record={record}
               source="statusCode"
               choices={statusChoices}
-              onChange={(e) => dataProvider.update('requests', { id, data: { status: e.target.value }, updateStatus: true })
+              onChange={(e) => dataProvider.update('requests', { id, data: { status: e.target.value }, subresource: 'status' })
                 .then(() => setLoading(() => true))
                 .catch((err) => notify(err.message, 'error'))}
               label="Статус"

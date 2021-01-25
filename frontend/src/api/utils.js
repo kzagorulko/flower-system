@@ -105,12 +105,12 @@ export function prepareFile(params) {
   });
 }
 
-export const prepareUrl = (url, status) => {
+export const prepareUrl = (url, subresource) => {
   if (url.includes('requestCategories')) {
     return url.replace(/requestCategories/gi, 'requests/categories');
   }
-  if (status) {
-    return `${url}/status`;
+  if (subresource) {
+    return `${url}/${subresource}`;
   }
   return url;
 };

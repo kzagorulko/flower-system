@@ -63,7 +63,7 @@ export default {
       })),
 
   update: (resource, params) => prepareFile(params)
-    .then((preparedParams) => request('PATCH', prepareUrl(`/${resource}/${preparedParams.id}`, preparedParams.updateStatus), preparedParams.data)
+    .then((preparedParams) => request('PATCH', prepareUrl(`/${resource}/${preparedParams.id}`, preparedParams.subresource), preparedParams.data)
       .then(() => {
         const data = {
           id: preparedParams.id,

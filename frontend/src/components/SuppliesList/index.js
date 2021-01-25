@@ -21,7 +21,6 @@ import {
   DateInput,
   useNotify,
 } from 'react-admin';
-import { getCookie } from '../../api/utils';
 import DateMonthInput from '../DateMonthInput';
 
 const statusChoices = [
@@ -38,13 +37,12 @@ const SuppliesListActions = ({
   showFilter,
   displayedFilters,
   filterValues,
+  permissions,
 }) => {
   const {
     basePath,
   } = useListContext();
-  const { loaded, permissions } = usePermissions('/supplies');
-
-  return loaded ? (
+  return (
     <TopToolbar>
       {(filters) && React.cloneElement(filters, {
         resource,
@@ -54,19 +52,21 @@ const SuppliesListActions = ({
         context: 'button',
         label: 'label',
       })}
-      {permissions.actions.includes('create') ? <CreateButton basePath={basePath} /> : null}
+      {permissions.supplies.includes('create') ? <CreateButton basePath={basePath} /> : null}
     </TopToolbar>
-  ) : <TopToolbar />;
+  );
 };
 
 const SuppliesFilter = (props) => {
-  const { hasBranches } = props;
+  const { permissions } = props;
   return (
     <Filter {...props}>
-      <ReferenceInput source="branch_id" reference="branches" alwaysOn>
-        <AutocompleteInput optionText="address" />
-      </ReferenceInput>
-      {hasBranches ? (
+      { permissions.branches ? (
+        <ReferenceInput source="branch_id" reference="branches" alwaysOn>
+          <AutocompleteInput optionText="address" />
+        </ReferenceInput>
+      ) : null }
+      { permissions.warehouses ? (
         <ReferenceInput source="warehouse_id" reference="warehouses">
           <AutocompleteInput optionText="address" />
         </ReferenceInput>
@@ -101,7 +101,7 @@ export const SupplyCreate = (props) => (
 export const SupplyShow = (props) => {
   const { id } = props;
   const dataProvider = useDataProvider();
-  const { loaded, permissions } = usePermissions('/supplies');
+  const { loaded, permissions } = usePermissions();
   const [record, setRecord] = useState({});
   const [loading, setLoading] = useState(true);
   const notify = useNotify();
@@ -115,22 +115,27 @@ export const SupplyShow = (props) => {
   return (!loading && loaded) ? (
     <Show {...props}>
       <SimpleForm toolbar={<div />}>
-        <ReferenceField link="show" label="Product" source="product_id" reference="products">
-          <TextField source="name" />
-        </ReferenceField>
-        <ReferenceField link="show" label="Warehouse" source="warehouse_id" reference="warehouses">
-          <TextField source="address" />
-        </ReferenceField>
-        {/* to omit for branch users when backend branch filtering added */}
-        <ReferenceField link="show" label="Branch" source="branch_id" reference="branches">
-          <TextField source="address" />
-        </ReferenceField>
+        { permissions.products ? (
+          <ReferenceField link="show" label="Product" source="product_id" reference="products">
+            <TextField source="name" />
+          </ReferenceField>
+        ) : null }
+        { permissions.warehouses ? (
+          <ReferenceField link="show" label="Warehouse" source="warehouse_id" reference="warehouses">
+            <TextField source="address" />
+          </ReferenceField>
+        ) : null }
+        { permissions.branches ? (
+          <ReferenceField link="show" label="Branch" source="branch_id" reference="branches">
+            <TextField source="address" />
+          </ReferenceField>
+        ) : null }
         <TextField source="value" />
-        { (permissions.actions.includes('update') && !finalStatusChoices.includes(record.status)) ? (
+        { (permissions.supplies.includes('update') && !finalStatusChoices.includes(record.status)) ? (
           <SelectInput
             source="status"
             choices={statusChoices}
-            onChange={(e) => dataProvider.update('supplies', { id, data: { status: e.target.value }, updateStatus: true })
+            onChange={(e) => dataProvider.update('supplies', { id, data: { status: e.target.value }, subresource: 'status' })
               .then(() => setLoading(() => true))
               .catch((err) => notify(err.message, 'error'))}
           />
@@ -141,31 +146,28 @@ export const SupplyShow = (props) => {
 };
 
 export const SuppliesList = (props) => {
-  const dataProvider = useDataProvider();
-  const [user, setUser] = useState({});
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    dataProvider.getOne('users', { id: parseInt(getCookie('userId'), 10) })
-      .then(({ data }) => { setUser(data); setLoading(false); });
-  }, []);
-  return (!loading) ? (
+  const { loaded, permissions } = usePermissions();
+  return loaded ? (
     <List
       {...props}
-      actions={<SuppliesListActions />}
+      actions={<SuppliesListActions permissions={permissions} />}
       bulkActionButtons={false}
-      filters={<SuppliesFilter hasBranches={user.role && user.role !== 'Филиал'} />}
+      filters={<SuppliesFilter permissions={permissions} />}
     >
-      {/* search by product_id, warehouse_id, branch_id, startendDate */}
       <Datagrid rowClick="show">
         <TextField source="id" />
         <DateField source="date" showTime />
-        <ReferenceField link="show" label="Product" source="product_id" reference="products">
-          <TextField source="name" />
-        </ReferenceField>
-        <ReferenceField link="show" label="Branch" source="branch_id" reference="branches">
-          <TextField source="address" />
-        </ReferenceField>
-        {user.role && user.role !== 'Филиал' ? (
+        { permissions.products ? (
+          <ReferenceField link="show" label="Product" source="product_id" reference="products">
+            <TextField source="name" />
+          </ReferenceField>
+        ) : null }
+        { permissions.branches ? (
+          <ReferenceField link="show" label="Branch" source="branch_id" reference="branches">
+            <TextField source="address" />
+          </ReferenceField>
+        ) : null }
+        { permissions.warehouses ? (
           <ReferenceField link="show" label="Warehouse" source="warehouse_id" reference="warehouses">
             <TextField source="address" />
           </ReferenceField>
