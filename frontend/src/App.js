@@ -61,6 +61,12 @@ import {
   RequestCategoryEdit,
 } from './components/RequestCategories';
 import { SalesList, SalesCreate, SalesShow } from './components/SalesList';
+import {
+  ContractList,
+  ContractShow,
+  ContractCreate,
+  ContractEdit,
+} from './components/Contracts';
 
 import './App.less';
 
@@ -181,6 +187,16 @@ const App = () => (
             edit={permissions.warehouses.includes('update') ? WarehouseEdit : null}
             icon={HomeWorkIcon}
             options={{ label: 'Склады' }}
+          />) : null,
+      permissions.contracts
+        ? (
+          <Resource
+            name="contracts"
+            list={ContractList}
+            show={ContractShow}
+            create={permissions.contracts.includes('create') ? ContractCreate : null}
+            edit={permissions.contracts.includes('update') ? ContractEdit : null}
+            options={{ label: 'Контракты' }}
           />
         ) : null,
     ]}

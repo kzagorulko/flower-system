@@ -26,7 +26,7 @@ const DateMonthInput = (props) => {
       label={label}
       type="month"
       onChange={onChange}
-      value={currentMonthControl}
+      value={value || currentMonthControl}
       error={!!(touched && error)}
       helperText={touched && error}
       margin="normal"

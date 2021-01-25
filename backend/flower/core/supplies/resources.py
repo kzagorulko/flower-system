@@ -63,10 +63,8 @@ class Supplies(HTTPEndpoint):
             )
 
     @jwt_required
-    @permissions.required(
-        action=permissions.actions.GET, return_role=True, return_user=True
-    )
-    async def get(self, request, role, user):
+    @permissions.required(action=permissions.actions.GET)
+    async def get(self, request):
         query_params = request.query_params
 
         current_query = SupplyModel.query
@@ -107,14 +105,6 @@ class Supplies(HTTPEndpoint):
                 SupplyModel.date,
                 query_params['endDate'],
                 GinoQueryHelper.LTE,
-                current_query,
-                total_query
-            )
-
-        if role.name == 'branches':
-            current_query, total_query = GinoQueryHelper.equal(
-                SupplyModel.branch_id,
-                user.branch_id,
                 current_query,
                 total_query
             )
@@ -170,34 +160,27 @@ class SupplyStatus(HTTPEndpoint):
             return make_error(f'Status {status} not found', status_code=404)
 
         # если поставка объявляется выполненной, то добавляем продукт на склад
-        try:
-            if status == Status.DONE.name and supply.status != Status.DONE:
-                product_in_warehouse = await ProductWarehouseModel.query.where(
-                    (ProductWarehouseModel.warehouse_id == supply.warehouse_id) &
-                    (ProductModel.id == supply.product_id)
-                ).gino.first()
+        if status == Status.DONE.name and supply.status != Status.DONE:
+            product_in_warehouse = await ProductWarehouseModel.query.where(
+                (ProductWarehouseModel.warehouse_id == supply.warehouse_id) &
+                (ProductModel.id == supply.product_id)
+            ).gino.first()
 
-                if not product_in_warehouse:
-                    raise Exception('Product in warehouse not found')
+            if not product_in_warehouse:
+                raise Exception('Product in warehouse not found')
 
-                # проверяем наличие продукта на случаи, что
-                # какая-то закупка могла быть отменена и тд
-                if (
-                    product_in_warehouse.value - int(supply.value) < 0
-                ):
-                    raise Exception('Insufficient quantity of goods in stock')
+            # проверяем наличие продукта на случаи, что
+            # какая-то закупка могла быть отменена и тд
+            if (
+                product_in_warehouse.value - int(supply.value) < 0
+            ):
+                raise Exception('Insufficient quantity of goods in stock')
 
-                new_value = product_in_warehouse.value - int(supply.value)
+            new_value = product_in_warehouse.value - int(supply.value)
 
-                await product_in_warehouse.update(value=new_value).apply()
+            await product_in_warehouse.update(value=new_value).apply()
 
-            await supply.update(status=status).apply()
-        except Exception as e:
-            return make_error(
-                e.args[0],
-                status_code=400
-            )
-
+        await supply.update(status=status).apply()
 
         return NO_CONTENT
 

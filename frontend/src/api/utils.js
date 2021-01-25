@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { HttpError } from 'react-admin';
 
-export const apiUrl = 'http://127.0.0.1:8000';
+export const apiUrl = process.env.REACT_APP_API_URL;
 
 export const API = axios.create();
 
@@ -90,28 +90,26 @@ export function convertFileToBase64(file) {
  * @param params - argument with data.image
  * @returns callback with prepared argument
  */
-export function prepareImage(params) {
+export function prepareFile(params) {
   return new Promise((resolve, reject) => {
-    if (!(params.data && params.data.image)) {
+    if (!(params.data && params.data.file)) {
       return resolve(params);
     }
 
-    return convertFileToBase64(params.data.image).then((base64Pictures) => {
+    return convertFileToBase64(params.data.file).then((base64Pictures) => {
       const customParams = { ...params };
 
-      customParams.data.image = base64Pictures;
+      customParams.data.file = base64Pictures;
       return resolve(customParams);
     }).catch((error) => reject(error));
   });
 }
 
 export const prepareUrl = (url, status) => {
-  console.log(url, status);
   if (url.includes('requestCategories')) {
     return url.replace(/requestCategories/gi, 'requests/categories');
   }
   if (status) {
-    console.log(url);
     return `${url}/status`;
   }
   return url;

@@ -5,14 +5,14 @@ from tests.testconf import get_access_token, client, setup
 
 
 def test_ping(client):
-    response = client.get('/ping')
+    response = client.get('/api/ping')
 
     assert response.status_code == 200, response.text
 
 
 def test_tokens(client):
     response = client.post(
-        '/users/refresh-tokens', json={
+        '/api/users/refresh-tokens', json={
             'identifier': ADMIN_USERNAME,
             'password': ADMIN_PASSWORD
         }
@@ -24,7 +24,7 @@ def test_tokens(client):
 def test_get_users(client):
     access_token = get_access_token(client)
     response = client.get(
-        '/users',
+        '/api/users',
         headers={'Authorization':  f'Bearer {access_token}'}
     )
     assert response.status_code == 200, response.text
@@ -35,7 +35,7 @@ def test_get_users(client):
 def test_create_user(client):
     access_token = get_access_token(client)
     response = client.post(
-        '/users/',
+        '/api/users/',
         headers={'Authorization': f'Bearer {access_token}'},
         json={
             'username': 'test_demo',
@@ -56,7 +56,7 @@ def test_create_user(client):
 def test_create_non_unique_user(client):
     access_token = get_access_token(client)
     response = client.post(
-        '/users/',
+        '/api/users/',
         headers={'Authorization': f'Bearer {access_token}'},
         json={
             'username': 'test_demo',
@@ -76,7 +76,7 @@ def test_create_non_unique_user(client):
 
 def test_permissions(client):
     response = client.post(
-        '/users/refresh-tokens', json={
+        '/api/users/refresh-tokens', json={
             'identifier': 'test_demo',
             'password': 'test_demo',
         }
@@ -84,7 +84,7 @@ def test_permissions(client):
     access_token = response.json()['access_token']
 
     response = client.post(
-        '/users/',
+        '/api/users/',
         headers={'Authorization': f'Bearer {access_token}'},
         json={
             'username': 'test_demo',
@@ -105,7 +105,7 @@ def test_permissions(client):
 def test_user_update(client):
     access_token = get_access_token(client)
     response = client.patch(
-        '/users/2',
+        '/api/users/2',
         headers={'Authorization': f'Bearer {access_token}'},
         json={
             'email': 'test2@mail.com',

@@ -147,20 +147,21 @@ export const RequestShow = (props) => {
           <Typography variant="caption" component="div" color="textSecondary">Исполнитель</Typography>
           { record.executor ? <UserCard user={record.executor} />
             : (user.role === record.department && (
-              <Button
-                href=""
-                className={cx('Button')}
-                variant="contained"
-                color="secondary"
-                onClick={() => dataProvider.update('requests', { id })
-                  .then(() => setRecord(() => {
-                    setLoading(() => true);
-                    return { executor_id: parseInt(getCookie('userId'), 10), ...record };
-                  }))
-                  .catch((err) => notify(err.message, 'error'))}
-              >
-                Стать исполнителем
-              </Button>
+              <div className={cx('Button')}>
+                <Button
+                  href=""
+                  variant="contained"
+                  color="secondary"
+                  onClick={() => dataProvider.update('requests', { id })
+                    .then(() => setRecord(() => {
+                      setLoading(() => true);
+                      return { executor_id: parseInt(getCookie('userId'), 10), ...record };
+                    }))
+                    .catch((err) => notify(err.message, 'error'))}
+                >
+                  Стать исполнителем
+                </Button>
+              </div>
             )) || <Typography component="div">Исполнитель на заявку пока не найден</Typography>}
         </div>
       </SimpleForm>

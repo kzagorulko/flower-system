@@ -26,8 +26,8 @@ class BranchModel(db.Model):
         }
 
         if for_card:
-            result['user_ids'] = [
-                user.id for user in self._users
+            result['users'] = [
+                user.jsonify() for user in self._users
             ]
 
         return result

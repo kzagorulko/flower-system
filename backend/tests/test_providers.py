@@ -4,7 +4,7 @@ from tests.testconf import get_access_token, client, setup
 def test_provider_create(client):
     access_token = get_access_token(client)
     response = client.post(
-        '/providers/',
+        '/api/providers/',
         headers={'Authorization': f'Bearer {access_token}'},
         json={
             'name': 'Израильская роза',
@@ -22,7 +22,7 @@ def test_provider_create(client):
 def test_provider_update(client):
     access_token = get_access_token(client)
     response = client.patch(
-        '/providers/3',
+        '/api/providers/3',
         headers={'Authorization': f'Bearer {access_token}'},
         json={
             'phone': '+79997779922',
