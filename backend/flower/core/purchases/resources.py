@@ -12,7 +12,8 @@ from ..utils import (
 )
 from ..models import (
     WarehouseModel, ProductModel, ProductWarehouseModel,
-    PurchaseStatus as Status, PurchaseModel
+    PurchaseStatus as Status, PurchaseModel, ContractModel, ContractStatus,
+    SupplyModel, SupplyStatus
 )
 
 permissions = Permissions(app_name='purchases')
@@ -28,11 +29,19 @@ class Purchases(HTTPEndpoint):
         try:
             check_missing_params(
                 data,
-                ['value', 'product_id', 'warehouse_id', 'date', 'address']
+                [
+                    'value',
+                    'product_id',
+                    'warehouse_id',
+                    'date',
+                    'address',
+                    'contract_id',
+                ]
             )
 
             product = await ProductModel.get(data['product_id'])
             warehouse = await WarehouseModel.get(data['warehouse_id'])
+            contract = await ContractModel.get(data['contract_id'])
 
             target_date = datetime.strptime(data['date'], '%Y-%m-%d')
 
@@ -41,6 +50,9 @@ class Purchases(HTTPEndpoint):
 
             if not warehouse:
                 raise Exception('Warehouse not found')
+
+            if not contract or contract.status != ContractStatus.OPERATING:
+                raise Exception('Contract is not valid')
 
             products_in_warehouse = await db.select(
                 [db.func.sum(ProductWarehouseModel.value)]
@@ -55,11 +67,20 @@ class Purchases(HTTPEndpoint):
                     (PurchaseModel.status == Status.NEW) |
                     (PurchaseModel.status == Status.IN_PROGRESS)
                 ) &
-                (PurchaseModel.date < target_date)
+                (PurchaseModel.date <= target_date)
+            ).gino.scalar() or 0
+
+            supplies = await db.select(
+                [db.func.sum(SupplyModel.value)]
+            ).where(
+                (
+                    (SupplyModel.status != SupplyStatus.CANCELLED)
+                    & (SupplyModel.date < target_date)
+                )
             ).gino.scalar() or 0
 
             if (
-                products_in_warehouse + purchases_in_progress
+                products_in_warehouse + purchases_in_progress - supplies
                 + int(data['value'])
                 > warehouse.max_value
             ):
@@ -72,6 +93,7 @@ class Purchases(HTTPEndpoint):
                 status=Status.NEW,
                 address=data['address'],
                 date=target_date.astimezone(utc),
+                contract_id=contract.id,
             )
 
             return make_response({'id': purchase.id})
@@ -157,10 +179,12 @@ class Purchase(HTTPEndpoint):
 
 
 class PurchaseStatus(HTTPEndpoint):
+    @with_transaction
     @jwt_required
-    @permissions.required(action=PermissionAction.UPDATE_STATUS,
-                          return_user=True)
-    async def patch(self, request, user):
+    @permissions.required(
+        action=PermissionAction.UPDATE_STATUS, return_role=True
+    )
+    async def patch(self, request, role):
         purchase_id = request.path_params['purchase_id']
         status = (await request.json())['status']
 
@@ -175,7 +199,10 @@ class PurchaseStatus(HTTPEndpoint):
         # проверка на кол-во продукта не производится,
         # т.к. это полностью регулируется
         # создании закупки
-        if status == Status.DONE.name and purchase.status != Status.DONE:
+        if (
+                status == Status.DONE.name and purchase.status != Status.DONE
+                and role.name in ('admin', 'logistics_department')
+        ):
             product_in_warehouse = await ProductWarehouseModel.query.where(
                 (ProductWarehouseModel.warehouse_id == purchase.warehouse_id) &
                 (ProductModel.id == purchase.product_id)
@@ -196,6 +223,24 @@ class PurchaseStatus(HTTPEndpoint):
         return NO_CONTENT
 
 
+class PurchaseWarehouse(HTTPEndpoint):
+    @with_transaction
+    @jwt_required
+    @permissions.required(action=PermissionAction.UPDATE_WAREHOUSE)
+    async def patch(self, request):
+        purchase_id = request.path_params['purchase_id']
+        warehouse_id = (await request.json())['warehouse_id']
+
+        purchase = await PurchaseModel.get(purchase_id)
+
+        if purchase and purchase.status == Status.NEW:
+            await purchase.update(warehouse_id=warehouse_id).apply()
+
+            return NO_CONTENT
+
+        return make_error('Status of purchase is not `NEW`')
+
+
 @jwt_required
 async def get_actions(request, user):
     return make_response(await permissions.get_actions(user.role_id))
@@ -205,5 +250,6 @@ routes = [
     Route('/', Purchases),
     Route('/{purchase_id:int}', Purchase),
     Route('/{purchase_id:int}/status', PurchaseStatus),
+    Route('/{purchase_id:int}/warehouse', PurchaseWarehouse),
     Route('/actions', get_actions, methods=['GET']),
 ]

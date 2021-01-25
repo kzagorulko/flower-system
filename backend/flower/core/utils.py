@@ -7,6 +7,7 @@ from uuid import uuid4
 from functools import wraps
 from base64 import b64decode
 from calendar import monthrange
+from mimetypes import guess_extension
 from urllib.parse import urljoin
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
@@ -182,7 +183,7 @@ class MediaUtils:
     @staticmethod
     async def save_file_base64(ext_file):
         service_data, base64_data = ext_file.split(',')
-        ext = service_data.split(';')[0].split('/')[-1]
+        ext = guess_extension(service_data.split(';')[0].split(':')[-1])
 
         file_name = MediaUtils.create_filename(ext)
 
@@ -431,7 +432,9 @@ def make_list_response(items, total):
     })
 
 
-def make_response(content):
+def make_response(content, background=None):
+    if background:
+        return JSONResponse(content, background=background)
     return JSONResponse(content)
 
 

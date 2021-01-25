@@ -19,13 +19,13 @@ class SupplyModel(db.Model):
     )
     date = db.Column(db.DateTime(timezone=True), nullable=False)
     product_id = db.Column(
-        db.Integer, db.ForeignKey('products.id'), nullable=True
+        db.Integer, db.ForeignKey('products.id'), nullable=False
     )
     warehouse_id = db.Column(
-        db.Integer, db.ForeignKey('warehouses.id'), nullable=True
+        db.Integer, db.ForeignKey('warehouses.id'), nullable=False
     )
     branch_id = db.Column(
-        db.Integer, db.ForeignKey('branches.id'), nullable=True
+        db.Integer, db.ForeignKey('branches.id'), nullable=False
     )
 
     def jsonify(self):

@@ -89,7 +89,7 @@ class Users(HTTPEndpoint):
             display_name=data['displayName'],
             email=data['email'],
             role_id=role_id,
-            branch_id=data['branch_id']
+            branch_id=data['branch_id'] if 'branch_id' in data else None
         )
 
         return make_response({'id': new_user.id})

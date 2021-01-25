@@ -1,3 +1,5 @@
+import json
+
 from starlette.routing import Route
 from starlette.endpoints import HTTPEndpoint
 
@@ -25,6 +27,15 @@ class Providers(HTTPEndpoint):
         total_query = db.select([db.func.count(ProviderModel.id)])
 
         query_params = request.query_params
+
+        if 'id' in query_params:
+            ids = json.loads(query_params['id'])
+            current_query, total_query = GinoQueryHelper.in_(
+                providers_query,
+                total_query,
+                ProviderModel.id,
+                ids
+            )
 
         if 'name' in query_params:
             providers_query, total_query = GinoQueryHelper.search(

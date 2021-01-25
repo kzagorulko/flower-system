@@ -20,7 +20,7 @@ class Products(HTTPEndpoint):
         data = await request.json()
 
         try:
-            image_file_base64 = data['image']
+            image_file_base64 = data['file']
             name = data['name']
             price = float(data['price'])
             description = data['description']
@@ -107,8 +107,8 @@ class Product(HTTPEndpoint):
             price = product.price
             description = product.description
 
-            if 'image' in data:
-                image_file_base64 = data['image']
+            if 'file' in data:
+                image_file_base64 = data['file']
                 new_image_path = await MediaUtils.save_file_base64(
                     image_file_base64
                 )

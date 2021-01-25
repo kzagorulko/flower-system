@@ -1,6 +1,6 @@
 import {
   request,
-  prepareImage,
+  prepareFile,
   prepareUrl,
 } from './utils';
 
@@ -53,7 +53,7 @@ export default {
 
   getManyReference: () => {},
 
-  create: (resource, params) => prepareImage(params)
+  create: (resource, params) => prepareFile(params)
     .then((preparedParams) => request('POST', prepareUrl(`/${resource}/`), preparedParams.data)
       .then((resp) => {
         const { data } = resp;
@@ -62,7 +62,7 @@ export default {
         };
       })),
 
-  update: (resource, params, status = false) => prepareImage(params)
+  update: (resource, params, status = false) => prepareFile(params)
     .then((preparedParams) => request('PATCH', prepareUrl(`/${resource}/${preparedParams.id}`, status), preparedParams.data)
       .then(() => {
         const data = {
