@@ -10,6 +10,9 @@ RUN apt-get install gettext-base
 COPY ./deployment/ /deployment/
 
 # frontend dependencies
+ARG FRONT_API_URL
+ENV REACT_APP_API_URL=$FRONT_API_URL
+
 COPY ./frontend/package.json ./frontend/package-lock.json /frontend/
 
 RUN cd /frontend/ && npm install
