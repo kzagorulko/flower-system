@@ -20,20 +20,17 @@ import {
   Edit,
 } from 'react-admin';
 
-export const ContractList = (props) => {
-  const { loading } = props || { loading: false };
-  return !loading ? (
-    <List {...props}>
-      <Datagrid rowClick="show">
-        <TextField source="id" />
-        <TextField source="number" />
-        <TextField source="status" />
-        <DateField source="startDate" />
-        <DateField source="endDate" />
-      </Datagrid>
-    </List>
-  ) : null;
-};
+export const ContractList = (props) => (
+  <List {...props}>
+    <Datagrid rowClick="show">
+      <TextField source="id" />
+      <TextField source="number" />
+      <TextField source="status" />
+      <DateField source="startDate" />
+      <DateField source="endDate" />
+    </Datagrid>
+  </List>
+);
 
 export const ContractShow = (props) => (
   <Show {...props}>
