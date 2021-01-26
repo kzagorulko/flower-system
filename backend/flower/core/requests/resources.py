@@ -321,7 +321,7 @@ routes = [
     Route('/', Requests),
     Route('/{request_id:int}', Request),
     Route('/{request_id:int}/status', RequestStatus),
-    Route('/categories', Categories),
-    Route('/categories/{category_id:int}', Category),
+    Route('/categories/', Categories),
+    Route('/categories/{category_id:int}/', Category),
     Route('/actions', get_actions, methods=['GET']),
 ]
