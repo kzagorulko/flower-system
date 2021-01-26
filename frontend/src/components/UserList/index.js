@@ -104,7 +104,12 @@ export const UserEdit = (props) => (
   </Edit>
 );
 export const UserList = (props) => (
-  <List {...props} actions={<UserListActions />} filters={<UserFilter />}>
+  <List
+    {...props}
+    actions={<UserListActions />}
+    filters={<UserFilter />}
+    bulkActionButtons={false}
+  >
     <Datagrid rowClick="edit">
       <TextField source="id" />
       <TextField source="displayName" />

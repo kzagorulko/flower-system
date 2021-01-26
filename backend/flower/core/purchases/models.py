@@ -38,5 +38,6 @@ class PurchaseModel(db.Model):
             'status': self.status.name,
             'product_id': self.product_id,
             'warehouse_id': self.warehouse_id,
+            'contract_id': self.contract_id,
             'date': convert_to_utc(self.date).isoformat(),
         }

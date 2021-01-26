@@ -11,7 +11,7 @@ from ..utils import (
     make_error, Permissions, GinoQueryHelper, NO_CONTENT
 )
 from ..models import (
-    WarehouseModel, ProductModel, ProductWarehouseModel,
+    WarehouseModel, ProductModel, ProductWarehouseModel, BranchModel,
     SupplyModel, SupplyStatus as Status,
 )
 
@@ -33,7 +33,7 @@ class Supplies(HTTPEndpoint):
 
             product = await ProductModel.get(data['product_id'])
             warehouse = await WarehouseModel.get(data['warehouse_id'])
-            branch = await WarehouseModel.get(data['branch_id'])
+            branch = await BranchModel.get(data['branch_id'])
 
             target_date = datetime.strptime(data['date'], '%Y-%m-%d')
 
@@ -133,7 +133,7 @@ class Supplies(HTTPEndpoint):
 class Supply(HTTPEndpoint):
     @staticmethod
     @jwt_required
-    @permissions.required(action=permissions.actions.GET_ONE)
+    @permissions.required(action=permissions.actions.GET)
     async def get(request):
         supply_id = request.path_params['supply_id']
 

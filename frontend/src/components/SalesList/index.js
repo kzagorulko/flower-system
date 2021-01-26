@@ -131,7 +131,14 @@ export const SalesList = (props) => {
       .then(({ data }) => { setUser(data); setLoading(false); });
   }, []);
   return !loading ? (
-    <List {...props} actions={<SalesListActions />} filters={<SalesFilter hasBranches={user.role && user.role !== 'Филиал'} />}>
+    <List
+      {...props}
+      actions={<SalesListActions />}
+      bulkActionButtons={false}
+      filters={(
+        <SalesFilter hasBranches={user.role && user.role !== 'Филиал'} />
+      )}
+    >
       <Datagrid rowClick="show">
         <TextField source="id" />
         <DateField source="date" />
